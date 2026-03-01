@@ -31,6 +31,10 @@ export class ReportService {
 
   /**
    * Creates a report anonymously via the company's magic link slug.
+   *
+   * @param magicLinkSlug - Magic link slug identifying the target company.
+   * @param dto - Report creation payload (title, content, optional contact).
+   * @returns Summary of the created report.
    */
   async createAnonymous(
     magicLinkSlug: string,
@@ -70,8 +74,11 @@ export class ReportService {
   }
 
   /**
-   * Lists all reports for the current tenant with optional filtering and pagination.
-   * The tenant extension automatically injects companyId from AsyncLocalStorage.
+   * Lists all reports for a company with optional filtering and pagination.
+   *
+   * @param companyId - The company identifier to scope the query.
+   * @param query - Pagination and filter options (status, priority, page, limit).
+   * @returns Paginated list of report summaries.
    */
   async findAllByCompany(
     companyId: string,
@@ -119,8 +126,11 @@ export class ReportService {
   }
 
   /**
-   * Returns a single report by ID.
-   * The tenant extension ensures companyId is enforced automatically.
+   * Returns a single report by ID scoped to the given company.
+   *
+   * @param id - The report unique identifier.
+   * @param companyId - The company identifier to enforce scoping.
+   * @returns Full report details.
    */
   async findOne(id: string, companyId: string): Promise<ReportDetailResponse> {
     const report = await this.prisma.report.findUnique({
@@ -140,6 +150,11 @@ export class ReportService {
 
   /**
    * Updates a report's status and/or priority.
+   *
+   * @param id - The report unique identifier.
+   * @param companyId - The company identifier to enforce scoping.
+   * @param dto - Fields to update (status, priority).
+   * @returns Updated report details.
    */
   async update(
     id: string,
@@ -169,8 +184,10 @@ export class ReportService {
   }
 
   /**
-   * Returns aggregated stats for the company dashboard.
-   * The tenant extension injects companyId into groupBy/count.
+   * Returns aggregated statistics for the company dashboard.
+   *
+   * @param companyId - The company identifier to scope the aggregation.
+   * @returns Breakdown of reports by status and priority, plus total count.
    */
   async getDashboardStats(companyId: string): Promise<DashboardStatsResponse> {
     const [statusCounts, priorityCounts, total] =

@@ -62,7 +62,6 @@ export function ReportListPage() {
         description='All anonymous reports submitted to your company'
       />
 
-      {/* Filters */}
       <div className='mb-6 rounded-xl border border-border/60 bg-card p-4 shadow-sm'>
         <div className='flex items-center gap-3'>
           <div className='flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-400 dark:bg-neutral-700'>
@@ -138,7 +137,6 @@ export function ReportListPage() {
           </div>
         </div>
 
-        {/* Active filter chips */}
         {hasActiveFilters && (
           <div className='mt-3 flex items-center gap-2 border-t border-border/40 pt-3'>
             <span className='text-xs text-neutral-400'>Active:</span>
@@ -168,7 +166,6 @@ export function ReportListPage() {
         )}
       </div>
 
-      {/* Table */}
       {isLoading ? (
         <div className='space-y-3'>
           {Array.from({ length: 5 }).map((_, i) => (
@@ -224,7 +221,6 @@ export function ReportListPage() {
             </Table>
           </div>
 
-          {/* Pagination */}
           {meta && meta.totalPages > 1 && (
             <div className='mt-4 flex items-center justify-between'>
               <p className='text-sm text-neutral'>

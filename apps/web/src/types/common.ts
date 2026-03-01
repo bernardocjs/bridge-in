@@ -1,5 +1,3 @@
-// ── Enums (mirror backend Prisma enums) ────────────────────────────────────
-
 export enum ReportStatus {
   OPEN = 'OPEN',
   IN_PROGRESS = 'IN_PROGRESS',
@@ -25,8 +23,6 @@ export enum MembershipStatus {
   REJECTED = 'REJECTED',
 }
 
-// ── Pagination ─────────────────────────────────────────────────────────────
-
 export interface PaginationMeta {
   total: number
   page: number
@@ -38,8 +34,6 @@ export interface PaginatedResponse<T> {
   data: T[]
   meta: PaginationMeta
 }
-
-// ── API error shape ────────────────────────────────────────────────────────
 
 export interface ApiError {
   code: string

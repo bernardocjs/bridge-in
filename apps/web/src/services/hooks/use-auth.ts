@@ -40,11 +40,6 @@ export function useRegister() {
   })
 }
 
-/**
- * Fetches /auth/me and hydrates Zustand store.
- * Only runs when there's a persisted token. The /me response doesn't include
- * `role`, so we supplement it by decoding the JWT payload.
- */
 export function useMe() {
   const token = useAuthStore(s => s.token)
   const setUser = useAuthStore(s => s.setUser)
@@ -54,14 +49,11 @@ export function useMe() {
     queryFn: async () => {
       const profile = await authApi.getMe()
 
-      // Derive role from JWT since /me doesn't return it
       let role: MemberRole | null = null
       if (token) {
         try {
           role = decodeJwtPayload(token).role
-        } catch {
-          /* ignore bad token */
-        }
+        } catch {}
       }
 
       const enrichedProfile: UserProfile = { ...profile, role }
@@ -70,6 +62,6 @@ export function useMe() {
     },
     enabled: !!token,
     retry: false,
-    staleTime: 60 * 1000, // 1min — profile changes infrequently
+    staleTime: 60 * 1000,
   })
 }

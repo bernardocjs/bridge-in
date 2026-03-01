@@ -7,9 +7,6 @@ import { ExceptionCodes } from '../../common/exceptions/exception-codes';
 import { PrismaService } from '../../providers/database/prisma.service';
 import { ReportService } from './report.service';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 const makeReport = (overrides: Record<string, unknown> = {}) => ({
   id: 'report-1',
   title: 'Test Report',
@@ -23,9 +20,6 @@ const makeReport = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
 const prismaMock = {
   company: {
     findUnique: vi.fn(),
@@ -61,9 +55,6 @@ describe('ReportService', () => {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // createAnonymous
-  // -------------------------------------------------------------------------
   describe('createAnonymous', () => {
     it('deve criar um relatório anônimo com sucesso', async () => {
       prismaMock.company.findUnique.mockResolvedValueOnce({ id: 'company-1' });
@@ -116,9 +107,6 @@ describe('ReportService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // findAllByCompany
-  // -------------------------------------------------------------------------
   describe('findAllByCompany', () => {
     it('deve retornar relatórios paginados', async () => {
       const reports = [makeReport(), makeReport({ id: 'report-2' })];
@@ -144,7 +132,6 @@ describe('ReportService', () => {
       });
 
       const txCall = prismaMock.$transaction.mock.calls[0][0];
-      // O Prisma cria objetos lazy; validamos que a transação foi chamada com arg array
       expect(Array.isArray(txCall)).toBe(true);
     });
 
@@ -158,9 +145,6 @@ describe('ReportService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // findOne
-  // -------------------------------------------------------------------------
   describe('findOne', () => {
     it('deve retornar um relatório pelo id', async () => {
       prismaMock.report.findUnique.mockResolvedValueOnce(makeReport());
@@ -187,9 +171,6 @@ describe('ReportService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // update
-  // -------------------------------------------------------------------------
   describe('update', () => {
     it('deve atualizar o status do relatório', async () => {
       prismaMock.report.findFirst.mockResolvedValueOnce(makeReport());
@@ -232,9 +213,6 @@ describe('ReportService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // getDashboardStats
-  // -------------------------------------------------------------------------
   describe('getDashboardStats', () => {
     it('deve retornar estatísticas agregadas do dashboard', async () => {
       const statusCounts = [

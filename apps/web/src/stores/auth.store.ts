@@ -12,7 +12,6 @@ interface AuthState {
 interface AuthActions {
   setToken: (token: string) => void
   setUser: (user: UserProfile) => void
-  /** Manually override role when we know it (e.g. after creating a company ⇒ ADMIN) */
   setRole: (role: MemberRole) => void
   logout: () => void
 }
@@ -32,20 +31,14 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'auth-storage',
-      // Only persist the token — user profile is re-fetched from /me on mount
       partialize: state => ({ token: state.token }),
     },
   ),
 )
 
-// ── Selectors ──────────────────────────────────────────────────────────────
 export const selectIsAuthenticated = (s: AuthStore) => !!s.token
 export const selectHasCompany = (s: AuthStore) => !!s.user?.companyId
 
-/**
- * Determine admin role: prefer user.role (set explicitly after company creation),
- * fall back to decoding the JWT payload for the role claim.
- */
 export const selectIsAdmin = (s: AuthStore) => {
   if (s.user?.role === MemberRole.ADMIN) return true
   if (s.token) {

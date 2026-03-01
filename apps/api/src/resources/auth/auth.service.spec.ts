@@ -118,9 +118,6 @@ describe('AuthService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // login
-  // -------------------------------------------------------------------------
   describe('login', () => {
     it('deve retornar um token para credenciais válidas', async () => {
       const hashed = await bcrypt.hash('secret', 10);
@@ -188,9 +185,6 @@ describe('AuthService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // me
-  // -------------------------------------------------------------------------
   describe('me', () => {
     it('deve retornar o perfil do usuário autenticado', async () => {
       const user = {

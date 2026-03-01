@@ -82,7 +82,6 @@ export function ReportDetailPage() {
       <PageHeader title={report.title} />
 
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-        {/* Main content */}
         <Card className='lg:col-span-2'>
           <CardContent className='pt-6'>
             <p className='text-sm leading-relaxed whitespace-pre-wrap text-foreground'>
@@ -91,9 +90,7 @@ export function ReportDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Sidebar */}
         <div className='space-y-4'>
-          {/* Status & Priority controls */}
           <Card>
             <CardHeader>
               <CardTitle className='text-sm'>Properties</CardTitle>
@@ -145,7 +142,6 @@ export function ReportDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Meta info */}
           <Card>
             <CardHeader>
               <CardTitle className='text-sm'>Details</CardTitle>

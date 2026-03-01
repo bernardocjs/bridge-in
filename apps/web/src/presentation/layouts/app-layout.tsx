@@ -70,16 +70,13 @@ export function AppLayout() {
   return (
     <TooltipProvider delayDuration={200}>
       <div className='flex h-screen overflow-hidden'>
-        {/* Sidebar */}
         <aside className='flex w-[240px] flex-col bg-gradient-to-b from-sidebar-background to-neutral-900'>
-          {/* Brand */}
           <div className='flex items-center px-5 py-5'>
             <img src='/LOGO.webp' alt='Bridge In' className='h-8 w-auto' />
           </div>
 
           <Separator className='bg-white/10' />
 
-          {/* User */}
           <div className='flex items-center gap-3 px-5 py-4'>
             <Avatar className='h-9 w-9 ring-2 ring-primary-400/30'>
               <AvatarFallback className='bg-primary-600 text-sm text-white'>
@@ -98,7 +95,6 @@ export function AppLayout() {
 
           <Separator className='bg-white/10' />
 
-          {/* Navigation */}
           <nav className='flex-1 space-y-1 px-3 py-4'>
             {navItems.map(({ to, icon: Icon, label }) => (
               <NavLink
@@ -161,7 +157,6 @@ export function AppLayout() {
               ))}
           </nav>
 
-          {/* Footer */}
           <div className='space-y-3 px-3 pb-4'>
             {reportLink && (
               <Tooltip>
@@ -210,7 +205,6 @@ export function AppLayout() {
           </div>
         </aside>
 
-        {/* Main content */}
         <main className='flex-1 overflow-y-auto bg-background p-6'>
           <Outlet />
         </main>

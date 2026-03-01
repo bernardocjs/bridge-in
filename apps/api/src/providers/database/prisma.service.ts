@@ -29,8 +29,8 @@ export class PrismaService
 
   /**
    * Returns a Prisma client extended with tenant-scoped filtering.
-   * Automatically injects `companyId` into Report queries when
-   * a tenant context is active (via AsyncLocalStorage).
+   *
+   * @returns Prisma client with companyId automatically injected into Report queries.
    */
   get tenant() {
     if (!this._tenantClient) {

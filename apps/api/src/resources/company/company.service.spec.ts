@@ -6,9 +6,6 @@ import { ExceptionCodes } from '../../common/exceptions/exception-codes';
 import { PrismaService } from '../../providers/database/prisma.service';
 import { CompanyService } from './company.service';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 const makeMembership = (overrides: Record<string, unknown> = {}) => ({
   id: 'mem-1',
   userId: 'user-1',
@@ -29,9 +26,6 @@ const makeCompany = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
 const txMock = {
   company: { create: vi.fn() },
   companyMembership: { create: vi.fn() },
@@ -60,9 +54,6 @@ describe('CompanyService', () => {
     service = new CompanyService(prismaMock as unknown as PrismaService);
   });
 
-  // -------------------------------------------------------------------------
-  // create
-  // -------------------------------------------------------------------------
   describe('create', () => {
     it('deve criar uma empresa e retorná-la', async () => {
       prismaMock.companyMembership.findUnique.mockResolvedValueOnce(null);
@@ -118,9 +109,6 @@ describe('CompanyService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // join
-  // -------------------------------------------------------------------------
   describe('join', () => {
     it('deve criar membership PENDING quando o magic link é válido', async () => {
       prismaMock.companyMembership.findUnique.mockResolvedValueOnce(null);
@@ -166,9 +154,6 @@ describe('CompanyService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // findByMagicLink
-  // -------------------------------------------------------------------------
   describe('findByMagicLink', () => {
     it('deve retornar informações públicas da empresa', async () => {
       prismaMock.company.findUnique.mockResolvedValueOnce({
@@ -195,9 +180,6 @@ describe('CompanyService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // findUserCompany
-  // -------------------------------------------------------------------------
   describe('findUserCompany', () => {
     it('deve retornar a empresa do usuário autenticado', async () => {
       const company = makeCompany();
@@ -222,9 +204,6 @@ describe('CompanyService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // rotateMagicLink
-  // -------------------------------------------------------------------------
   describe('rotateMagicLink', () => {
     it('deve atualizar o magic link slug e retornar os novos dados', async () => {
       const updated = { id: 'company-1', magicLinkSlug: 'new-uuid' };
@@ -237,9 +216,6 @@ describe('CompanyService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // listMembers
-  // -------------------------------------------------------------------------
   describe('listMembers', () => {
     it('deve retornar todos os membros quando nenhum filtro é fornecido', async () => {
       const members = [makeMembership(), makeMembership({ id: 'mem-2' })];
@@ -264,9 +240,6 @@ describe('CompanyService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // reviewMembership
-  // -------------------------------------------------------------------------
   describe('reviewMembership', () => {
     it('deve aprovar uma membership PENDING', async () => {
       const pending = makeMembership({ status: MembershipStatus.PENDING });

@@ -6,11 +6,7 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// ── Request interceptor: inject auth token ─────────────────────────────────
-// We import the store lazily to avoid circular deps (store → apiClient → store)
 apiClient.interceptors.request.use(config => {
-  // Dynamic import of persisted state from localStorage to avoid importing
-  // the Zustand store module directly (which would create a circular dep)
   const raw = localStorage.getItem('auth-storage')
   if (raw) {
     try {
@@ -18,20 +14,16 @@ apiClient.interceptors.request.use(config => {
       if (state?.token) {
         config.headers.Authorization = `Bearer ${state.token}`
       }
-    } catch {
-      // corrupted storage — ignore
-    }
+    } catch {}
   }
   return config
 })
 
-// ── Response interceptor: handle 401 globally ──────────────────────────────
 apiClient.interceptors.response.use(
   response => response,
   error => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       localStorage.removeItem('auth-storage')
-      // Only redirect if not already on a public page
       const { pathname } = window.location
       if (
         !pathname.startsWith('/login') &&

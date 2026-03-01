@@ -15,8 +15,9 @@ export class AuthController {
 
   /**
    * Registers a new user account.
+   *
    * @param dto - Registration payload (email, password, name).
-   * @returns Access token only.
+   * @returns Object containing the signed access token.
    */
   @ApiOperation({ summary: 'Register a new user account' })
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
@@ -28,8 +29,9 @@ export class AuthController {
 
   /**
    * Authenticates a user and issues a JWT.
+   *
    * @param dto - Login credentials (email, password).
-   * @returns Access token only. Use GET /auth/me for user data.
+   * @returns Object containing the signed access token.
    */
   @ApiOperation({ summary: 'Authenticate user and obtain JWT' })
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
@@ -41,6 +43,7 @@ export class AuthController {
 
   /**
    * Returns the profile of the currently authenticated user.
+   *
    * @param user - JWT payload extracted from the bearer token.
    * @returns User profile including company association.
    */

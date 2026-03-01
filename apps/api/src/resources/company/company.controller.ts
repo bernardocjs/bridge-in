@@ -38,6 +38,10 @@ export class CompanyController {
 
   /**
    * Creates a new company and assigns the authenticated user as its admin.
+   *
+   * @param user - JWT payload of the authenticated user.
+   * @param dto - Company creation payload (name).
+   * @returns The newly created company.
    */
   @ApiOperation({ summary: 'Create a company and become its admin' })
   @Post()
@@ -50,7 +54,10 @@ export class CompanyController {
 
   /**
    * Requests to join an existing company using a magic link slug.
-   * The request will be PENDING until an admin approves it.
+   *
+   * @param user - JWT payload of the authenticated user.
+   * @param magicLinkSlug - The company's magic link identifier from the URL.
+   * @returns Membership request details with company name and PENDING status.
    */
   @ApiOperation({ summary: 'Request to join a company via magic link' })
   @Post('join/:magicLinkSlug')
@@ -63,6 +70,9 @@ export class CompanyController {
 
   /**
    * Returns public company info for the anonymous report submission form.
+   *
+   * @param slug - The company's magic link slug.
+   * @returns Public company information (name only).
    */
   @ApiOperation({ summary: 'Get company info by magic link slug (public)' })
   @Public()
@@ -73,6 +83,9 @@ export class CompanyController {
 
   /**
    * Returns the company the authenticated user belongs to.
+   *
+   * @param user - JWT payload of the authenticated user.
+   * @returns Company details including name, slug and creation date.
    */
   @ApiOperation({ summary: "Return the authenticated user's company" })
   @UseGuards(HasCompanyGuard)
@@ -83,7 +96,10 @@ export class CompanyController {
 
   /**
    * Lists membership requests for the user's company.
-   * Only accessible by company ADMINs.
+   *
+   * @param user - JWT payload of the authenticated admin user.
+   * @param query - Optional status filter.
+   * @returns Array of membership records.
    */
   @ApiOperation({ summary: 'List company members/requests (admin only)' })
   @UseGuards(HasCompanyGuard, RolesGuard)
@@ -98,7 +114,11 @@ export class CompanyController {
 
   /**
    * Approves or rejects a pending membership request.
-   * Only accessible by company ADMINs.
+   *
+   * @param membershipId - The membership request unique identifier.
+   * @param user - JWT payload of the authenticated admin user.
+   * @param dto - Review payload containing the new membership status.
+   * @returns Updated membership record.
    */
   @ApiOperation({ summary: 'Review a membership request (admin only)' })
   @UseGuards(HasCompanyGuard, RolesGuard)
@@ -119,7 +139,9 @@ export class CompanyController {
 
   /**
    * Rotates the company's magic link to invalidate the previous invite URL.
-   * Only accessible by company ADMINs.
+   *
+   * @param user - JWT payload of the authenticated admin user.
+   * @returns Updated company id and new magic link slug.
    */
   @ApiOperation({ summary: 'Rotate the company magic link (admin only)' })
   @UseGuards(HasCompanyGuard, RolesGuard)

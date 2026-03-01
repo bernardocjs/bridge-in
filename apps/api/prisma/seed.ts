@@ -35,7 +35,6 @@ async function main() {
     },
   });
 
-  // Create approved ADMIN membership
   await prisma.companyMembership.upsert({
     where: { userId: user.id },
     update: {},

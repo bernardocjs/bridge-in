@@ -25,6 +25,12 @@ export class AuthService {
     );
   }
 
+  /**
+   * Registers a new user and returns a signed JWT.
+   *
+   * @param dto - Registration payload (email, password, name).
+   * @returns Object containing the signed access token.
+   */
   async register(dto: RegisterDto): Promise<AuthTokenResponse> {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
@@ -62,6 +68,12 @@ export class AuthService {
     return { accessToken: token };
   }
 
+  /**
+   * Authenticates a user and returns a signed JWT.
+   *
+   * @param dto - Login credentials (email, password).
+   * @returns Object containing the signed access token.
+   */
   async login(dto: LoginDto): Promise<AuthTokenResponse> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
@@ -103,6 +115,12 @@ export class AuthService {
     return { accessToken: token };
   }
 
+  /**
+   * Returns the profile of the authenticated user.
+   *
+   * @param userId - The authenticated user's unique identifier.
+   * @returns User profile including company and role information.
+   */
   async me(userId: string): Promise<UserProfileResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -140,6 +158,12 @@ export class AuthService {
     };
   }
 
+  /**
+   * Signs and returns a JWT for the given payload.
+   *
+   * @param payload - Data to encode in the token (userId, email, companyId, role).
+   * @returns Signed JWT string.
+   */
   private generateToken(payload: JwtPayload): string {
     return this.jwt.sign(payload);
   }

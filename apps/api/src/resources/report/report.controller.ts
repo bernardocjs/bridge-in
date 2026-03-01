@@ -31,6 +31,10 @@ export class ReportController {
 
   /**
    * Submits an anonymous report to a company identified by its magic link slug.
+   *
+   * @param magicLinkSlug - The company's magic link slug from the URL.
+   * @param dto - Report payload (title, content, optional contact).
+   * @returns Summary of the created report.
    */
   @ApiOperation({
     summary: 'Submit an anonymous report via magic link (public)',
@@ -47,6 +51,10 @@ export class ReportController {
 
   /**
    * Lists reports for the authenticated user's company with optional filters.
+   *
+   * @param user - JWT payload of the authenticated user.
+   * @param query - Pagination and filter options.
+   * @returns Paginated list of report summaries.
    */
   @ApiOperation({
     summary: 'List company reports with optional filters and pagination',
@@ -62,6 +70,9 @@ export class ReportController {
 
   /**
    * Returns aggregated report statistics for the company dashboard.
+   *
+   * @param user - JWT payload of the authenticated user.
+   * @returns Report counts broken down by status and priority.
    */
   @ApiOperation({
     summary: 'Get aggregated report statistics for the dashboard',
@@ -76,6 +87,10 @@ export class ReportController {
 
   /**
    * Returns a single report by ID, scoped to the authenticated user's company.
+   *
+   * @param id - The report unique identifier.
+   * @param user - JWT payload of the authenticated user.
+   * @returns Full report details.
    */
   @ApiOperation({ summary: 'Get a report by ID' })
   @UseGuards(HasCompanyGuard)
@@ -89,6 +104,11 @@ export class ReportController {
 
   /**
    * Updates a report's status and/or priority.
+   *
+   * @param id - The report unique identifier.
+   * @param user - JWT payload of the authenticated user.
+   * @param dto - Fields to update (status, priority).
+   * @returns Updated report details.
    */
   @ApiOperation({ summary: "Update a report's status and/or priority" })
   @UseGuards(HasCompanyGuard)

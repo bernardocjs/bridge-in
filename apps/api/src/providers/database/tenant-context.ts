@@ -7,8 +7,9 @@ export interface TenantContext {
 export const tenantStorage = new AsyncLocalStorage<TenantContext>();
 
 /**
- * Get the current tenant companyId from AsyncLocalStorage.
- * Returns undefined if no tenant context is set (e.g. public routes).
+ * Gets the current tenant companyId from AsyncLocalStorage.
+ *
+ * @returns The current tenant companyId, or undefined if no tenant context is active.
  */
 export function getCurrentTenantId(): string | undefined {
   return tenantStorage.getStore()?.companyId;
