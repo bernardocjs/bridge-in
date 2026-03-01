@@ -9,9 +9,6 @@ import { ExceptionCodes } from '../../common/exceptions/exception-codes';
 import { PrismaService } from '../../providers/database/prisma.service';
 import { AuthService } from './auth.service';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 const makeUser = (overrides: Partial<Record<string, unknown>> = {}) => ({
   id: 'user-1',
   email: 'test@example.com',
@@ -21,9 +18,6 @@ const makeUser = (overrides: Partial<Record<string, unknown>> = {}) => ({
   ...overrides,
 });
 
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
 const prismaMock = {
   user: {
     findUnique: vi.fn(),
@@ -51,9 +45,6 @@ describe('AuthService', () => {
     );
   });
 
-  // -------------------------------------------------------------------------
-  // register
-  // -------------------------------------------------------------------------
   describe('register', () => {
     it('deve criar o usuário e retornar um token quando o email não existe', async () => {
       prismaMock.user.findUnique.mockResolvedValueOnce(null);

@@ -1,9 +1,9 @@
 [build]
 builder = "nixpacks"
-buildCommand = "yarn install --frozen-lockfile --ignore-engines && yarn workspace api prisma generate && yarn workspace api build"
+buildCommand = "yarn workspace api prisma generate && yarn workspace api build"
 
 [variables]
-NIXPACKS_NODE_VERSION = "22"
+NIXPACKS_NODE_VERSION = "23"
 
 [deploy]
 startCommand = "cd apps/api && npx prisma migrate deploy && node dist/main"
