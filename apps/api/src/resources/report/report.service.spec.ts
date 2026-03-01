@@ -4,6 +4,7 @@ import { ReportPriority, ReportStatus } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
+import { MailService } from '../../providers/mail';
 import { PrismaService } from '../../providers/database/prisma.service';
 import { ReportService } from './report.service';
 
@@ -23,6 +24,9 @@ const makeReport = (overrides: Record<string, unknown> = {}) => ({
 const prismaMock = {
   company: {
     findUnique: vi.fn(),
+  },
+  companyMembership: {
+    findMany: vi.fn(),
   },
   report: {
     create: vi.fn(),
@@ -44,6 +48,10 @@ const configMock = {
   }),
 };
 
+const mailServiceMock = {
+  sendNewReportNotification: vi.fn(),
+};
+
 describe('ReportService', () => {
   let service: ReportService;
 
@@ -52,14 +60,19 @@ describe('ReportService', () => {
     service = new ReportService(
       prismaMock as unknown as PrismaService,
       configMock as unknown as ConfigService,
+      mailServiceMock as unknown as MailService,
     );
   });
 
   describe('createAnonymous', () => {
     it('deve criar um relatório anônimo com sucesso', async () => {
-      prismaMock.company.findUnique.mockResolvedValueOnce({ id: 'company-1' });
+      prismaMock.company.findUnique.mockResolvedValueOnce({
+        id: 'company-1',
+        name: 'Test Company',
+      });
       const report = makeReport();
       prismaMock.report.create.mockResolvedValueOnce(report);
+      prismaMock.companyMembership.findMany.mockResolvedValueOnce([]);
 
       const result = await service.createAnonymous('magic-slug', {
         title: 'Test Report',
@@ -69,7 +82,7 @@ describe('ReportService', () => {
       expect(result.id).toBe('report-1');
       expect(prismaMock.company.findUnique).toHaveBeenCalledWith({
         where: { magicLinkSlug: 'magic-slug' },
-        select: { id: true },
+        select: { id: true, name: true },
       });
       expect(prismaMock.report.create).toHaveBeenCalledOnce();
     });
@@ -93,8 +106,12 @@ describe('ReportService', () => {
     });
 
     it('deve salvar o contato do denunciante quando fornecido', async () => {
-      prismaMock.company.findUnique.mockResolvedValueOnce({ id: 'company-1' });
+      prismaMock.company.findUnique.mockResolvedValueOnce({
+        id: 'company-1',
+        name: 'Test Company',
+      });
       prismaMock.report.create.mockResolvedValueOnce(makeReport());
+      prismaMock.companyMembership.findMany.mockResolvedValueOnce([]);
 
       await service.createAnonymous('magic-slug', {
         title: 'T',
@@ -104,6 +121,38 @@ describe('ReportService', () => {
 
       const createArgs = prismaMock.report.create.mock.calls[0][0].data;
       expect(createArgs.reporterContact).toBe('anon@mail.com');
+    });
+
+    it('deve notificar membros aprovados quando um report é criado', async () => {
+      const members = [
+        { user: { email: 'admin@corp.com', name: 'Admin' } },
+        { user: { email: 'member@corp.com', name: 'Member' } },
+      ];
+      prismaMock.company.findUnique.mockResolvedValueOnce({
+        id: 'company-1',
+        name: 'Acme Corp',
+      });
+      prismaMock.report.create.mockResolvedValueOnce(
+        makeReport({ title: 'Urgent Report' }),
+      );
+      prismaMock.companyMembership.findMany.mockResolvedValueOnce(members);
+
+      await service.createAnonymous('magic-slug', {
+        title: 'Urgent Report',
+        content: 'Some content',
+      });
+
+      // Give the fire-and-forget promise a tick to resolve
+      await Promise.resolve();
+
+      expect(mailServiceMock.sendNewReportNotification).toHaveBeenCalledWith(
+        'Acme Corp',
+        'Urgent Report',
+        [
+          { email: 'admin@corp.com', name: 'Admin' },
+          { email: 'member@corp.com', name: 'Member' },
+        ],
+      );
     });
   });
 

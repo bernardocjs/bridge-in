@@ -20,4 +20,7 @@ export const envValidationSchema = Joi.object({
   BCRYPT_SALT_ROUNDS: Joi.number().integer().min(10).max(14).default(12),
   DEFAULT_PAGE_SIZE: Joi.number().integer().min(1).max(100).default(10),
   MAX_PAGE_SIZE: Joi.number().integer().min(1).max(200).default(50),
+
+  RESEND_API_KEY: Joi.string().required(),
+  MAIL_FROM: Joi.string().default('Bridge-In <noreply@bridgein.app>'),
 });

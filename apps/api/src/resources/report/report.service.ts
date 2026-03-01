@@ -1,9 +1,11 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
+import { MembershipStatus } from '@prisma/client';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
 import { paginate, buildPaginationMeta } from '../../common/helpers/pagination';
+import { MailService } from '../../providers/mail';
 import { PrismaService } from '../../providers/database/prisma.service';
 import { CreateReportDto, QueryReportDto, UpdateReportDto } from './dtos';
 import {
@@ -21,6 +23,7 @@ export class ReportService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly mail: MailService,
   ) {
     this.defaultPageSize = this.config.get<number>(
       'app.pagination.defaultSize',
@@ -44,6 +47,7 @@ export class ReportService {
       where: { magicLinkSlug },
       select: {
         id: true,
+        name: true,
       },
     });
 
@@ -69,6 +73,27 @@ export class ReportService {
         createdAt: true,
       },
     });
+
+    // Fire-and-forget: notify all approved members of the company
+    this.prisma.companyMembership
+      .findMany({
+        where: { companyId: company.id, status: MembershipStatus.APPROVED },
+        select: { user: { select: { email: true, name: true } } },
+      })
+      .then((memberships) => {
+        const recipients = memberships.map((m) => ({
+          email: m.user.email,
+          name: m.user.name,
+        }));
+        this.mail.sendNewReportNotification(
+          company.name,
+          report.title,
+          recipients,
+        );
+      })
+      .catch(() => {
+        // Notification failure must never affect the main flow
+      });
 
     return report;
   }

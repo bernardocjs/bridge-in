@@ -22,6 +22,11 @@ export const appConfig = registerAs('app', () => ({
   password: {
     maxLength: 72,
   },
+
+  mail: {
+    apiKey: process.env.RESEND_API_KEY!,
+    from: process.env.MAIL_FROM || 'Bridge-In <noreply@bridgein.app>',
+  },
 }));
 
 export type AppConfig = ReturnType<typeof appConfig>;
