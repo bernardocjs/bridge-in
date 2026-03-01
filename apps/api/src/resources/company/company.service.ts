@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { MembershipStatus } from '@prisma/client';
+import { MemberRole, MembershipStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
@@ -40,8 +40,8 @@ export class CompanyService {
         data: {
           userId,
           companyId: company.id,
-          role: 'ADMIN',
-          status: 'APPROVED',
+          role: MemberRole.ADMIN,
+          status: MembershipStatus.APPROVED,
           reviewedAt: new Date(),
         },
       });
@@ -78,8 +78,8 @@ export class CompanyService {
         data: {
           userId,
           companyId: company.id,
-          role: 'MEMBER',
-          status: 'PENDING',
+          role: MemberRole.MEMBER,
+          status: MembershipStatus.PENDING,
         },
       });
     });
@@ -184,7 +184,7 @@ export class CompanyService {
       );
     }
 
-    if (membership.status !== 'PENDING') {
+    if (membership.status !== MembershipStatus.PENDING) {
       throw new AppException(
         ExceptionCodes.MEMBERSHIP_ALREADY_REVIEWED,
         'This membership request has already been reviewed',
@@ -213,7 +213,7 @@ export class CompanyService {
 
     if (existing) {
       const message =
-        existing.status === 'PENDING'
+        existing.status === MembershipStatus.PENDING
           ? 'You already have a pending membership request'
           : 'You already belong to a company';
       throw new AppException(

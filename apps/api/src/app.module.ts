@@ -8,7 +8,6 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
 import { LoggerModule } from './common/logger/logger.module';
 import { DatabaseModule } from './providers/database/database.module';
-import { MailerModule } from './providers/mailer/mailer.module';
 import { AuthModule } from './resources/auth/auth.module';
 import { CompanyModule } from './resources/company/company.module';
 import { ReportModule } from './resources/report/report.module';
@@ -25,7 +24,6 @@ import { ReportModule } from './resources/report/report.module';
     }),
     LoggerModule,
     DatabaseModule,
-    MailerModule,
     AuthModule,
     CompanyModule,
     ReportModule,

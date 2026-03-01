@@ -1,14 +1,10 @@
-import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
 import { paginate, buildPaginationMeta } from '../../common/helpers/pagination';
 import { PrismaService } from '../../providers/database/prisma.service';
-import {
-  IMailer,
-  MAILER_SERVICE,
-} from '../../providers/mailer/mailer.interface';
 import { CreateReportDto, QueryReportDto, UpdateReportDto } from './dtos';
 import {
   DashboardStatsResponse,
@@ -19,13 +15,11 @@ import {
 
 @Injectable()
 export class ReportService {
-  private readonly logger = new Logger(ReportService.name);
   private readonly defaultPageSize: number;
   private readonly maxPageSize: number;
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(MAILER_SERVICE) private readonly mailer: IMailer,
     private readonly config: ConfigService,
   ) {
     this.defaultPageSize = this.config.get<number>(
@@ -37,8 +31,6 @@ export class ReportService {
 
   /**
    * Creates a report anonymously via the company's magic link slug.
-   * No authentication required — tenant extension is NOT active on public routes,
-   * so companyId is resolved explicitly from the magic link.
    */
   async createAnonymous(
     magicLinkSlug: string,
@@ -48,11 +40,6 @@ export class ReportService {
       where: { magicLinkSlug },
       select: {
         id: true,
-        name: true,
-        memberships: {
-          where: { status: 'APPROVED' },
-          select: { user: { select: { email: true } } },
-        },
       },
     });
 
@@ -78,23 +65,6 @@ export class ReportService {
         createdAt: true,
       },
     });
-
-    // Send notifications to all approved members — log failures without blocking
-    const emailPromises = company.memberships.map((m) =>
-      this.mailer.send({
-        to: m.user.email,
-        subject: `New anonymous report: ${report.title}`,
-        body: `A new anonymous report has been submitted to ${company.name}. Please review it in your dashboard.`,
-      }),
-    );
-
-    const results = await Promise.allSettled(emailPromises);
-    const failures = results.filter((r) => r.status === 'rejected');
-    if (failures.length > 0) {
-      this.logger.warn(
-        `Failed to send ${failures.length}/${results.length} notification emails for report ${report.id}`,
-      );
-    }
 
     return report;
   }

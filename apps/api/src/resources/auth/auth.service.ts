@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { MembershipStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
@@ -66,7 +67,7 @@ export class AuthService {
       where: { email: dto.email },
       include: {
         membership: {
-          where: { status: 'APPROVED' },
+          where: { status: MembershipStatus.APPROVED },
           select: { companyId: true, role: true },
         },
       },
@@ -110,7 +111,7 @@ export class AuthService {
         email: true,
         name: true,
         membership: {
-          where: { status: 'APPROVED' },
+          where: { status: MembershipStatus.APPROVED },
           select: {
             companyId: true,
             role: true,

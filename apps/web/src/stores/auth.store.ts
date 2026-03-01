@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { decodeJwtPayload } from '@/lib/decode-jwt'
-import type { MemberRole } from '@/types'
+import { MemberRole } from '@/types'
 import type { UserProfile } from '@/types'
 
 interface AuthState {
@@ -47,10 +47,10 @@ export const selectHasCompany = (s: AuthStore) => !!s.user?.companyId
  * fall back to decoding the JWT payload for the role claim.
  */
 export const selectIsAdmin = (s: AuthStore) => {
-  if (s.user?.role === 'ADMIN') return true
+  if (s.user?.role === MemberRole.ADMIN) return true
   if (s.token) {
     try {
-      return decodeJwtPayload(s.token).role === 'ADMIN'
+      return decodeJwtPayload(s.token).role === MemberRole.ADMIN
     } catch {
       return false
     }

@@ -1,4 +1,10 @@
-import { PrismaClient, ReportPriority, ReportStatus } from '@prisma/client';
+import {
+  MemberRole,
+  MembershipStatus,
+  PrismaClient,
+  ReportPriority,
+  ReportStatus,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -36,8 +42,8 @@ async function main() {
     create: {
       userId: user.id,
       companyId: company.id,
-      role: 'ADMIN',
-      status: 'APPROVED',
+      role: MemberRole.ADMIN,
+      status: MembershipStatus.APPROVED,
       reviewedAt: new Date(),
     },
   });

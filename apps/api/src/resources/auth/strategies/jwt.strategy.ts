@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import { MembershipStatus } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from '../../../common/interfaces/jwt-payload.interface';
 import { PrismaService } from '../../../providers/database/prisma.service';
@@ -25,7 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         id: true,
         email: true,
         membership: {
-          where: { status: 'APPROVED' },
+          where: { status: MembershipStatus.APPROVED },
           select: { companyId: true, role: true },
         },
       },
