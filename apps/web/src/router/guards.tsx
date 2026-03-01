@@ -44,6 +44,8 @@ export function CompanyGuard() {
   if (!hasCompany) return <Navigate to={Routes.ONBOARDING} replace />
   return <Outlet />
 }
+
+/** Requires ADMIN role — redirects to dashboard otherwise */
 export function AdminGuard() {
   const isAdmin = useAuthStore(selectIsAdmin)
   if (!isAdmin) return <Navigate to={Routes.DASHBOARD} replace />

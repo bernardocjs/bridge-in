@@ -3,10 +3,6 @@ import { ShieldAlert } from 'lucide-react'
 import { useCompanyBySlug } from '@/services/hooks/use-company'
 import { Skeleton } from '@/presentation/components/ui/skeleton'
 
-/**
- * Minimal layout for the public anonymous report submission page.
- * Shows the company name (fetched from the magic link slug) in the header.
- */
 export function PublicLayout() {
   const { slug = '' } = useParams<{ slug: string }>()
   const { data: company, isLoading } = useCompanyBySlug(slug)

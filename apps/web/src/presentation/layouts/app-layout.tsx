@@ -30,9 +30,6 @@ const navItems = [
 
 const adminItems = [{ to: Routes.MEMBERS, icon: Users, label: 'Members' }]
 
-/**
- * Main authenticated layout with a dark sidebar and scrollable content area.
- */
 export function AppLayout() {
   const user = useAuthStore(s => s.user)
   const isAdmin = useAuthStore(selectIsAdmin)

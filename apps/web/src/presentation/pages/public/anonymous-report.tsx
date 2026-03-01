@@ -26,7 +26,8 @@ import {
 import { Input } from '@/presentation/components/ui/input'
 import { Textarea } from '@/presentation/components/ui/textarea'
 import { Button } from '@/presentation/components/ui/button'
-import { CheckCircle2, AlertTriangle } from 'lucide-react'
+import { ReportNotFound } from './components/report-not-found'
+import { ReportSubmitted } from './components/report-submitted'
 
 export function AnonymousReportPage() {
   const { slug = '' } = useParams<{ slug: string }>()
@@ -60,48 +61,24 @@ export function AnonymousReportPage() {
     )
   }
 
-  // Invalid or expired slug
   if (!companyLoading && isError) {
     return (
       <Card className='mx-auto max-w-md border-border/40 shadow-lg'>
-        <CardContent className='flex flex-col items-center py-12 text-center'>
-          <div className='mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-tag-warning/10'>
-            <AlertTriangle className='h-8 w-8 text-tag-warning' />
-          </div>
-          <h3 className='text-lg font-semibold'>Link Not Found</h3>
-          <p className='mt-2 text-sm text-neutral'>
-            This report link is invalid or has been rotated. Please contact the
-            company for an updated link.
-          </p>
-        </CardContent>
+        <ReportNotFound />
       </Card>
     )
   }
 
-  // Success state
   if (submitted) {
     return (
       <Card className='mx-auto max-w-md border-border/40 shadow-lg'>
-        <CardContent className='flex flex-col items-center py-12 text-center'>
-          <div className='mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-success/10'>
-            <CheckCircle2 className='h-8 w-8 text-success-600' />
-          </div>
-          <h3 className='text-lg font-semibold'>Report Submitted</h3>
-          <p className='mt-2 max-w-xs text-sm text-neutral'>
-            Your anonymous report has been securely submitted to{' '}
-            <strong>{company?.name}</strong>. Thank you for speaking up.
-          </p>
-          <Button
-            variant='outline'
-            className='mt-6'
-            onClick={() => {
-              setSubmitted(false)
-              form.reset()
-            }}
-          >
-            Submit another report
-          </Button>
-        </CardContent>
+        <ReportSubmitted
+          companyName={company?.name}
+          onReset={() => {
+            setSubmitted(false)
+            form.reset()
+          }}
+        />
       </Card>
     )
   }
