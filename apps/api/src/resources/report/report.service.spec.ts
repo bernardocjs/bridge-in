@@ -142,7 +142,6 @@ describe('ReportService', () => {
         content: 'Some content',
       });
 
-      // Give the fire-and-forget promise a tick to resolve
       await Promise.resolve();
 
       expect(mailServiceMock.sendNewReportNotification).toHaveBeenCalledWith(
