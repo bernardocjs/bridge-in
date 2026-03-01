@@ -15,15 +15,14 @@
 
 ```bash
 # Clone the repository
-git clone <repo-url>
+git clone https://github.com/bernardocjs/bridge-in
 cd bridge-in
 
 # Install dependencies
 yarn install
 
-# Set up API environment variables
+
 cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env with your settings
 ```
 
 ### Database
