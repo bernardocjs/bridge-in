@@ -1,8 +1,8 @@
 export const AppRoutes = {
   BASE: {
-    key: "/",
-    DEER: {
-      pageA: "",
+    key: '/',
+    REPORT: {
+      pageA: '',
     },
   },
-} as const;
+} as const

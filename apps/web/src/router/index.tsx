@@ -1,6 +1,5 @@
-import { createBrowserRouter } from "react-router-dom";
-import ClientRequestForm from "../deer-ticket";
-import { AppRoutes } from "./routes";
+import { createBrowserRouter } from 'react-router-dom'
+import { AppRoutes } from './routes'
 
 const router = createBrowserRouter([
   {
@@ -8,11 +7,11 @@ const router = createBrowserRouter([
     // element: <App/>,
     children: [
       {
-        path: AppRoutes.BASE.DEER.pageA,
-        element: <ClientRequestForm />,
+        path: AppRoutes.BASE.REPORT.pageA,
+        element: <div>Page A</div>,
       },
     ],
   },
-]);
+])
 
-export { router };
+export { router }
