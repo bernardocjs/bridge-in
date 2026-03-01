@@ -5,7 +5,6 @@ import {
   FileText,
   Users,
   LogOut,
-  ShieldAlert,
   Link as LinkIcon,
   Check,
 } from 'lucide-react'
@@ -74,13 +73,8 @@ export function AppLayout() {
         {/* Sidebar */}
         <aside className='flex w-[240px] flex-col bg-gradient-to-b from-sidebar-background to-neutral-900'>
           {/* Brand */}
-          <div className='flex items-center gap-2.5 px-5 py-5'>
-            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20'>
-              <ShieldAlert className='h-5 w-5 text-primary-300' />
-            </div>
-            <span className='text-lg font-bold tracking-tight text-white'>
-              Bridge In
-            </span>
+          <div className='flex items-center px-5 py-5'>
+            <img src='/LOGO.webp' alt='Bridge In' className='h-8 w-auto' />
           </div>
 
           <Separator className='bg-white/10' />
