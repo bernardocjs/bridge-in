@@ -13,6 +13,5 @@ export const authApi = {
   register: (data: RegisterInput) =>
     apiClient.post<AuthTokenResponse>('/auth/register', data).then(r => r.data),
 
-  getMe: () =>
-    apiClient.get<Omit<UserProfile, 'role'>>('/auth/me').then(r => r.data),
+  getMe: () => apiClient.get<UserProfile>('/auth/me').then(r => r.data),
 }

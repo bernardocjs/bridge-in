@@ -2,10 +2,9 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { authApi } from '@/services/api/auth.api'
 import { authKeys } from '@/lib/query-client'
 import { queryClient } from '@/lib/query-client'
-import { decodeJwtPayload } from '@/lib/decode-jwt'
 import { useAuthStore } from '@/stores/auth.store'
 import { handleApiError } from '@/utils/error-handler'
-import type { MemberRole, UserProfile } from '@/types'
+import type { UserProfile } from '@/types'
 
 export function useLogin() {
   const { setToken } = useAuthStore.getState()
@@ -49,14 +48,10 @@ export function useMe() {
     queryFn: async () => {
       const profile = await authApi.getMe()
 
-      let role: MemberRole | null = null
-      if (token) {
-        try {
-          role = decodeJwtPayload(token).role
-        } catch {}
+      const enrichedProfile: UserProfile = {
+        ...profile,
+        role: profile.role ?? null,
       }
-
-      const enrichedProfile: UserProfile = { ...profile, role }
       setUser(enrichedProfile)
       return enrichedProfile
     },

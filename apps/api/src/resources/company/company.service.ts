@@ -231,6 +231,11 @@ export class CompanyService {
     return this.prisma.companyMembership.findMany({
       where,
       orderBy: { requestedAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, email: true, name: true },
+        },
+      },
     });
   }
 

@@ -154,6 +154,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       companyId: membership?.companyId ?? null,
+      role: membership?.role ?? null,
       company: membership?.company ?? null,
     };
   }

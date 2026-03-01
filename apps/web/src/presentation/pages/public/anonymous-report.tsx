@@ -26,6 +26,7 @@ import {
 import { Input } from '@/presentation/components/ui/input'
 import { Textarea } from '@/presentation/components/ui/textarea'
 import { Button } from '@/presentation/components/ui/button'
+import { Skeleton } from '@/presentation/components/ui/skeleton'
 import { ReportNotFound } from './components/report-not-found'
 import { ReportSubmitted } from './components/report-submitted'
 
@@ -61,7 +62,33 @@ export function AnonymousReportPage() {
     )
   }
 
-  if (!companyLoading && isError) {
+  if (companyLoading) {
+    return (
+      <Card className='border-border/40 shadow-lg'>
+        <CardHeader>
+          <Skeleton className='h-7 w-64' />
+          <Skeleton className='mt-2 h-4 w-full' />
+        </CardHeader>
+        <CardContent className='space-y-4'>
+          <div className='space-y-2'>
+            <Skeleton className='h-4 w-16' />
+            <Skeleton className='h-10 w-full' />
+          </div>
+          <div className='space-y-2'>
+            <Skeleton className='h-4 w-24' />
+            <Skeleton className='h-32 w-full' />
+          </div>
+          <div className='space-y-2'>
+            <Skeleton className='h-4 w-32' />
+            <Skeleton className='h-10 w-full' />
+          </div>
+          <Skeleton className='h-10 w-full' />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (isError) {
     return (
       <Card className='mx-auto max-w-md border-border/40 shadow-lg'>
         <ReportNotFound />
