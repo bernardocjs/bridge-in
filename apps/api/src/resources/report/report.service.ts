@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Report, ReportPriority, ReportStatus } from '@prisma/client';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
 import { PrismaService } from '../../providers/database/prisma.service';
@@ -22,8 +22,19 @@ export class ReportService {
   /**
    * Creates a report anonymously via the company's magic link slug.
    * No authentication required.
+   * @param magicLinkSlug - Unique slug identifying the target company.
+   * @param dto - Report data submitted by the anonymous reporter.
+   * @returns Minimal report record (id, title, status, createdAt) and sends email notifications.
    */
-  async createAnonymous(magicLinkSlug: string, dto: CreateReportDto) {
+  async createAnonymous(
+    magicLinkSlug: string,
+    dto: CreateReportDto,
+  ): Promise<{
+    id: string;
+    title: string;
+    status: ReportStatus;
+    createdAt: Date;
+  }> {
     const company = await this.prisma.company.findUnique({
       where: { magicLinkSlug },
       select: { id: true, name: true, users: { select: { email: true } } },
@@ -66,9 +77,25 @@ export class ReportService {
   /**
    * Lists all reports for a company with optional filtering and pagination.
    * Tenancy is enforced via the companyId from the JWT.
-   * @
+   * @param companyId - ID of the company (from JWT) used to scope the query.
+   * @param query - Optional filters (status, priority) and pagination params (page, limit).
+   * @returns Paginated list of reports with metadata (total, page, limit, totalPages).
    */
-  async findAllByCompany(companyId: string, query: QueryReportDto) {
+  async findAllByCompany(
+    companyId: string,
+    query: QueryReportDto,
+  ): Promise<{
+    data: Array<{
+      id: string;
+      title: string;
+      status: ReportStatus;
+      priority: ReportPriority;
+      reporterContact: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
+    meta: { total: number; page: number; limit: number; totalPages: number };
+  }> {
     const page = Math.max(1, parseInt(query.page || '1', 10));
     const limit = Math.min(
       MAX_PAGE_SIZE,
@@ -119,8 +146,11 @@ export class ReportService {
   /**
    * Returns a single report by ID, enforcing company tenancy.
    * Returns 404 even if the report exists in another company (no information leakage).
+   * @param id - UUID of the report to retrieve.
+   * @param companyId - ID of the company (from JWT) used to scope the query.
+   * @returns The full report record.
    */
-  async findOne(id: string, companyId: string) {
+  async findOne(id: string, companyId: string): Promise<Report> {
     const report = await this.prisma.report.findFirst({
       where: { id, companyId },
     });
@@ -139,8 +169,16 @@ export class ReportService {
   /**
    * Updates a report's status and/or priority.
    * Tenancy is enforced via companyId.
+   * @param id - UUID of the report to update.
+   * @param companyId - ID of the company (from JWT) used for tenancy validation.
+   * @param dto - Fields to update (status, priority).
+   * @returns The full updated report record.
    */
-  async update(id: string, companyId: string, dto: UpdateReportDto) {
+  async update(
+    id: string,
+    companyId: string,
+    dto: UpdateReportDto,
+  ): Promise<Report> {
     await this.findOne(id, companyId);
 
     return this.prisma.report.update({
@@ -154,8 +192,14 @@ export class ReportService {
 
   /**
    * Returns aggregated stats for the company dashboard.
+   * @param companyId - ID of the company (from JWT) to aggregate stats for.
+   * @returns Total report count, counts grouped by status, and counts grouped by priority.
    */
-  async getDashboardStats(companyId: string) {
+  async getDashboardStats(companyId: string): Promise<{
+    total: number;
+    byStatus: Record<string, number>;
+    byPriority: Record<string, number>;
+  }> {
     const [statusCounts, priorityCounts, total] =
       await this.prisma.$transaction([
         this.prisma.report.groupBy({
@@ -176,10 +220,16 @@ export class ReportService {
     return {
       total,
       byStatus: Object.fromEntries(
-        statusCounts.map((s) => [s.status, s._count.status]),
+        statusCounts.map((s) => [
+          s.status,
+          (s._count as { status: number }).status,
+        ]),
       ),
       byPriority: Object.fromEntries(
-        priorityCounts.map((p) => [p.priority, p._count.priority]),
+        priorityCounts.map((p) => [
+          p.priority,
+          (p._count as { priority: number }).priority,
+        ]),
       ),
     };
   }

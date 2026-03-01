@@ -1,19 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { Injectable, Logger } from '@nestjs/common';
 import { IMailer, SendMailOptions } from './mailer.interface';
 
 @Injectable()
 export class ConsoleMailerService implements IMailer {
-  constructor(
-    @InjectPinoLogger(ConsoleMailerService.name)
-    private readonly logger: PinoLogger,
-  ) {}
+  private readonly logger = new Logger(ConsoleMailerService.name);
 
   async send(options: SendMailOptions): Promise<void> {
-    this.logger.info(
-      { to: options.to, subject: options.subject },
-      `[MAIL] To: ${options.to} | Subject: ${options.subject}`,
-    );
-    this.logger.debug({ body: options.body }, '[MAIL] Body content');
+    this.logger.log(`[MAIL] To: ${options.to} | Subject: ${options.subject}`);
+    this.logger.debug(`[MAIL] Body content: ${options.body}`);
   }
 }

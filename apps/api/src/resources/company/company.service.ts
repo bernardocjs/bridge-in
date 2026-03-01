@@ -12,8 +12,20 @@ export class CompanyService {
   /**
    * Creates a new company and assigns the requesting user to it.
    * Both operations happen atomically in a transaction.
+   * @param userId - ID of the authenticated user that will own the company.
+   * @param dto - Company creation data (name).
+   * @returns The newly created company record.
    */
-  async create(userId: string, dto: CreateCompanyDto) {
+  async create(
+    userId: string,
+    dto: CreateCompanyDto,
+  ): Promise<{
+    id: string;
+    name: string;
+    magicLinkSlug: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }> {
     await this.ensureUserHasNoCompany(userId);
 
     return this.prisma.$transaction(async (tx) => {
@@ -35,8 +47,14 @@ export class CompanyService {
 
   /**
    * Joins an existing company via its magic link slug.
+   * @param userId - ID of the authenticated user joining the company.
+   * @param magicLinkSlug - Unique slug from the company invite link.
+   * @returns The joined company's public info.
    */
-  async join(userId: string, magicLinkSlug: string) {
+  async join(
+    userId: string,
+    magicLinkSlug: string,
+  ): Promise<{ id: string; name: string; magicLinkSlug: string }> {
     await this.ensureUserHasNoCompany(userId);
 
     const company = await this.prisma.company.findUnique({
@@ -62,8 +80,10 @@ export class CompanyService {
 
   /**
    * Returns minimal public info for the anonymous report form.
+   * @param slug - Magic link slug included in the anonymous report URL.
+   * @returns The company's display name.
    */
-  async findByMagicLink(slug: string) {
+  async findByMagicLink(slug: string): Promise<{ name: string }> {
     const company = await this.prisma.company.findUnique({
       where: { magicLinkSlug: slug },
       select: { name: true },
@@ -82,8 +102,15 @@ export class CompanyService {
 
   /**
    * Returns the company the authenticated user belongs to.
+   * @param companyId - ID of the company from the user's JWT payload.
+   * @returns Company details including the magic link slug and creation date.
    */
-  async findUserCompany(companyId: string) {
+  async findUserCompany(companyId: string): Promise<{
+    id: string;
+    name: string;
+    magicLinkSlug: string;
+    createdAt: Date;
+  }> {
     const company = await this.prisma.company.findUnique({
       where: { id: companyId },
       select: { id: true, name: true, magicLinkSlug: true, createdAt: true },
@@ -102,8 +129,12 @@ export class CompanyService {
 
   /**
    * Rotates the magic link slug for security purposes.
+   * @param companyId - ID of the company whose link will be rotated.
+   * @returns The updated company ID and the new magic link slug.
    */
-  async rotateMagicLink(companyId: string) {
+  async rotateMagicLink(
+    companyId: string,
+  ): Promise<{ id: string; magicLinkSlug: string }> {
     const company = await this.prisma.company.update({
       where: { id: companyId },
       data: { magicLinkSlug: randomUUID() },
@@ -113,7 +144,12 @@ export class CompanyService {
     return company;
   }
 
-  private async ensureUserHasNoCompany(userId: string) {
+  /**
+   * Validates that the user does not already belong to a company.
+   * @param userId - ID of the user to check.
+   * @returns Void, or throws if the user is already assigned to a company.
+   */
+  private async ensureUserHasNoCompany(userId: string): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { companyId: true },

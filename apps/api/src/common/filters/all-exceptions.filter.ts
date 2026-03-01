@@ -4,10 +4,10 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { AppException } from '../exceptions/app.exception';
 import { ExceptionCodes } from '../exceptions/exception-codes';
 
@@ -40,10 +40,7 @@ const PRISMA_ERROR_MAP: Record<
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  constructor(
-    @InjectPinoLogger(AllExceptionsFilter.name)
-    private readonly logger: PinoLogger,
-  ) {}
+  private readonly logger = new Logger(AllExceptionsFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -52,15 +49,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const { status, body } = this.resolveException(exception, request);
 
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (status >= (HttpStatus.INTERNAL_SERVER_ERROR as number)) {
       this.logger.error(
-        { err: exception, path: request.url, method: request.method },
-        body.message,
+        `${body.message} [${request.method} ${request.url}]`,
+        exception instanceof Error ? exception.stack : String(exception),
       );
     } else {
       this.logger.warn(
-        { code: body.code, path: request.url, method: request.method },
-        body.message,
+        `${body.message} [${body.code}] [${request.method} ${request.url}]`,
       );
     }
 
@@ -69,7 +65,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   private resolveException(
     exception: unknown,
-    _request: Request,
+    _: Request,
   ): { status: number; body: ErrorResponse } {
     if (exception instanceof AppException) {
       return {
