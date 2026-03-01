@@ -35,7 +35,8 @@ $ yarn build
 ## Structure
 
 - The app is created in the `src` folder.
-- The app routes are created in the `src/routes` folder, using the `react-router-dom` library.
+- The app routes are created in the `src/routes` folder, using the
+  `react-router-dom` library.
 - The app pages are created in the `src/pages` folder.
 - The app layouts are created in the `src/layouts` folder.
 - The app components are created in the `src/components` folder.

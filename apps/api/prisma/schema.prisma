@@ -37,7 +37,6 @@ model Company {
   id   String @id @default(uuid())
   name String
 
-  /// Rotatable token used for anonymous report submissions and user onboarding.
   magicLinkSlug String @unique
 
   createdAt DateTime @default(now())
@@ -89,10 +88,8 @@ model Report {
   status   ReportStatus   @default(OPEN)
   priority ReportPriority @default(MEDIUM)
 
-  /// Optional contact for confidential (non-anonymous) reports.
   reporterContact String?
 
-  /// Linked to Company (not User) so reports survive user deletion.
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 

@@ -249,6 +249,15 @@ describe('CompanyService', () => {
       expect(prismaMock.companyMembership.findMany).toHaveBeenCalledWith({
         where: { companyId: 'company-1' },
         orderBy: { requestedAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
       });
     });
 
