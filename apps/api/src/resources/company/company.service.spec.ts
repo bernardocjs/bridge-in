@@ -55,7 +55,7 @@ describe('CompanyService', () => {
   });
 
   describe('create', () => {
-    it('deve criar uma empresa e retorná-la', async () => {
+    it('should create a company and return it', async () => {
       prismaMock.companyMembership.findUnique.mockResolvedValueOnce(null);
       const company = makeCompany();
       prismaMock.$transaction.mockImplementationOnce(
@@ -72,17 +72,19 @@ describe('CompanyService', () => {
 
       expect(result.name).toBe('Acme Corp');
       expect(txMock.company.create).toHaveBeenCalledOnce();
+      const callData = txMock.company.create.mock.calls[0][0].data;
+      expect(callData.magicLinkSlug).toMatch(/^acme-corp-[a-z0-9]{6}$/);
       expect(txMock.companyMembership.create).toHaveBeenCalledOnce();
     });
 
-    it('deve lançar AppException quando o usuário já tem membership (PENDING)', async () => {
+    it('should throw when user already has a pending membership', async () => {
       prismaMock.companyMembership.findUnique.mockResolvedValueOnce(
         makeMembership({ status: MembershipStatus.PENDING }),
       );
 
       try {
         await service.create('user-1', { name: 'New Co' });
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(
@@ -92,14 +94,14 @@ describe('CompanyService', () => {
       }
     });
 
-    it('deve lançar AppException quando o usuário já pertence a uma empresa (APPROVED)', async () => {
+    it('should throw when user already belongs to a company', async () => {
       prismaMock.companyMembership.findUnique.mockResolvedValueOnce(
         makeMembership({ status: MembershipStatus.APPROVED }),
       );
 
       try {
         await service.create('user-1', { name: 'New Co' });
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(
@@ -110,7 +112,7 @@ describe('CompanyService', () => {
   });
 
   describe('join', () => {
-    it('deve criar membership PENDING quando o magic link é válido', async () => {
+    it('should create a PENDING membership when magic link is valid', async () => {
       prismaMock.companyMembership.findUnique.mockResolvedValueOnce(null);
       prismaMock.company.findUnique.mockResolvedValueOnce(makeCompany());
       const mem = makeMembership();
@@ -127,13 +129,13 @@ describe('CompanyService', () => {
       expect(result.companyName).toBe('Acme Corp');
     });
 
-    it('deve lançar AppException quando o magic link não existe', async () => {
+    it('should throw when magic link does not exist', async () => {
       prismaMock.companyMembership.findUnique.mockResolvedValueOnce(null);
       prismaMock.company.findUnique.mockResolvedValueOnce(null);
 
       try {
         await service.join('user-1', 'invalid-slug');
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(
@@ -143,7 +145,7 @@ describe('CompanyService', () => {
       }
     });
 
-    it('deve lançar AppException quando o usuário já tem membership', async () => {
+    it('should throw when user already has a membership', async () => {
       prismaMock.companyMembership.findUnique.mockResolvedValueOnce(
         makeMembership({ status: MembershipStatus.APPROVED }),
       );
@@ -155,7 +157,7 @@ describe('CompanyService', () => {
   });
 
   describe('findByMagicLink', () => {
-    it('deve retornar informações públicas da empresa', async () => {
+    it('should return public company information', async () => {
       prismaMock.company.findUnique.mockResolvedValueOnce({
         name: 'Acme Corp',
       });
@@ -165,12 +167,12 @@ describe('CompanyService', () => {
       expect(result.name).toBe('Acme Corp');
     });
 
-    it('deve lançar AppException quando o slug é inválido', async () => {
+    it('should throw when slug is invalid', async () => {
       prismaMock.company.findUnique.mockResolvedValueOnce(null);
 
       try {
         await service.findByMagicLink('bad-slug');
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(
@@ -181,7 +183,7 @@ describe('CompanyService', () => {
   });
 
   describe('findUserCompany', () => {
-    it('deve retornar a empresa do usuário autenticado', async () => {
+    it('should return the authenticated user company', async () => {
       const company = makeCompany();
       prismaMock.company.findUnique.mockResolvedValueOnce(company);
 
@@ -190,12 +192,12 @@ describe('CompanyService', () => {
       expect(result.id).toBe('company-1');
     });
 
-    it('deve lançar AppException quando empresa não é encontrada', async () => {
+    it('should throw when company is not found', async () => {
       prismaMock.company.findUnique.mockResolvedValueOnce(null);
 
       try {
         await service.findUserCompany('missing-id');
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(ExceptionCodes.COMPANY_NOT_FOUND);
@@ -205,19 +207,39 @@ describe('CompanyService', () => {
   });
 
   describe('rotateMagicLink', () => {
-    it('deve atualizar o magic link slug e retornar os novos dados', async () => {
-      const updated = { id: 'company-1', magicLinkSlug: 'new-uuid' };
-      prismaMock.company.update.mockResolvedValueOnce(updated);
+    it('should fetch current slug, rotate the suffix and return updated data', async () => {
+      prismaMock.company.findUnique.mockResolvedValueOnce({
+        magicLinkSlug: 'acme-corp-abc123',
+      });
+      prismaMock.company.update.mockImplementationOnce(async ({ data }) => ({
+        id: 'company-1',
+        magicLinkSlug: data.magicLinkSlug,
+      }));
 
       const result = await service.rotateMagicLink('company-1');
 
+      expect(prismaMock.company.findUnique).toHaveBeenCalledOnce();
       expect(prismaMock.company.update).toHaveBeenCalledOnce();
-      expect(result.magicLinkSlug).toBe('new-uuid');
+      expect(result.magicLinkSlug).toMatch(/^acme-corp-[a-z0-9]{6}$/);
+      expect(result.magicLinkSlug).not.toBe('acme-corp-abc123');
+    });
+
+    it('should throw when company is not found', async () => {
+      prismaMock.company.findUnique.mockResolvedValueOnce(null);
+
+      try {
+        await service.rotateMagicLink('missing-id');
+        expect.fail('should have thrown');
+      } catch (e: unknown) {
+        expect(e).toBeInstanceOf(AppException);
+        expect((e as AppException).code).toBe(ExceptionCodes.COMPANY_NOT_FOUND);
+        expect((e as AppException).getStatus()).toBe(HttpStatus.NOT_FOUND);
+      }
     });
   });
 
   describe('listMembers', () => {
-    it('deve retornar todos os membros quando nenhum filtro é fornecido', async () => {
+    it('should return all members when no filter is provided', async () => {
       const members = [makeMembership(), makeMembership({ id: 'mem-2' })];
       prismaMock.companyMembership.findMany.mockResolvedValueOnce(members);
 
@@ -230,7 +252,7 @@ describe('CompanyService', () => {
       });
     });
 
-    it('deve filtrar membros por status quando fornecido', async () => {
+    it('should filter members by status when provided', async () => {
       prismaMock.companyMembership.findMany.mockResolvedValueOnce([]);
 
       await service.listMembers('company-1', MembershipStatus.PENDING);
@@ -241,7 +263,7 @@ describe('CompanyService', () => {
   });
 
   describe('reviewMembership', () => {
-    it('deve aprovar uma membership PENDING', async () => {
+    it('should approve a PENDING membership', async () => {
       const pending = makeMembership({ status: MembershipStatus.PENDING });
       const approved = {
         ...pending,
@@ -261,7 +283,7 @@ describe('CompanyService', () => {
       expect(result.status).toBe(MembershipStatus.APPROVED);
     });
 
-    it('deve lançar AppException quando o membership não é encontrado', async () => {
+    it('should throw when membership is not found', async () => {
       prismaMock.companyMembership.findFirst.mockResolvedValueOnce(null);
 
       try {
@@ -271,7 +293,7 @@ describe('CompanyService', () => {
           'rev-1',
           MembershipStatus.APPROVED,
         );
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(
@@ -281,7 +303,7 @@ describe('CompanyService', () => {
       }
     });
 
-    it('deve lançar AppException quando o membership já foi revisado', async () => {
+    it('should throw when membership has already been reviewed', async () => {
       prismaMock.companyMembership.findFirst.mockResolvedValueOnce(
         makeMembership({ status: MembershipStatus.APPROVED }),
       );
@@ -293,7 +315,7 @@ describe('CompanyService', () => {
           'rev-1',
           MembershipStatus.REJECTED,
         );
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(

@@ -1,8 +1,8 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { MemberRole, MembershipStatus } from '@prisma/client';
-import { randomUUID } from 'crypto';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
+import { generateSlug, rotateSlugSuffix } from '../../common/helpers/slug';
 import { PrismaService } from '../../providers/database/prisma.service';
 import { CreateCompanyDto } from './dtos';
 import {
@@ -13,6 +13,9 @@ import {
   MembershipRequestResponse,
   MembershipResponse,
 } from './interfaces';
+
+const MAX_SLUG_RETRIES = 3;
+const PRISMA_UNIQUE_VIOLATION = 'P2002';
 
 @Injectable()
 export class CompanyService {
@@ -31,26 +34,44 @@ export class CompanyService {
   ): Promise<CompanyResponse> {
     await this.ensureUserHasNoMembership(userId);
 
-    return this.prisma.$transaction(async (tx) => {
-      const company = await tx.company.create({
-        data: {
-          name: dto.name,
-          magicLinkSlug: randomUUID(),
-        },
-      });
+    for (let attempt = 0; attempt < MAX_SLUG_RETRIES; attempt++) {
+      try {
+        return await this.prisma.$transaction(async (tx) => {
+          const company = await tx.company.create({
+            data: {
+              name: dto.name,
+              magicLinkSlug: generateSlug(dto.name),
+            },
+          });
 
-      await tx.companyMembership.create({
-        data: {
-          userId,
-          companyId: company.id,
-          role: MemberRole.ADMIN,
-          status: MembershipStatus.APPROVED,
-          reviewedAt: new Date(),
-        },
-      });
+          await tx.companyMembership.create({
+            data: {
+              userId,
+              companyId: company.id,
+              role: MemberRole.ADMIN,
+              status: MembershipStatus.APPROVED,
+              reviewedAt: new Date(),
+            },
+          });
 
-      return company;
-    });
+          return company;
+        });
+      } catch (error: any) {
+        const isSlugCollision =
+          error?.code === PRISMA_UNIQUE_VIOLATION &&
+          error?.meta?.target?.includes('magicLinkSlug');
+
+        if (!isSlugCollision || attempt === MAX_SLUG_RETRIES - 1) {
+          throw error;
+        }
+      }
+    }
+
+    throw new AppException(
+      ExceptionCodes.INTERNAL_ERROR,
+      'Failed to generate unique slug',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 
   /**
@@ -145,18 +166,50 @@ export class CompanyService {
 
   /**
    * Rotates the magic link slug to invalidate the previous invite URL.
+   * Preserves the human-readable prefix derived from the company name and only
+   * regenerates the random suffix.
    *
    * @param companyId - The company whose magic link should be rotated.
    * @returns Updated company id and new magic link slug.
    */
   async rotateMagicLink(companyId: string): Promise<MagicLinkResponse> {
-    const company = await this.prisma.company.update({
+    const current = await this.prisma.company.findUnique({
       where: { id: companyId },
-      data: { magicLinkSlug: randomUUID() },
-      select: { id: true, magicLinkSlug: true },
+      select: { magicLinkSlug: true },
     });
 
-    return company;
+    if (!current) {
+      throw new AppException(
+        ExceptionCodes.COMPANY_NOT_FOUND,
+        'Company not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    for (let attempt = 0; attempt < MAX_SLUG_RETRIES; attempt++) {
+      try {
+        const company = await this.prisma.company.update({
+          where: { id: companyId },
+          data: { magicLinkSlug: rotateSlugSuffix(current.magicLinkSlug) },
+          select: { id: true, magicLinkSlug: true },
+        });
+        return company;
+      } catch (error: any) {
+        const isSlugCollision =
+          error?.code === PRISMA_UNIQUE_VIOLATION &&
+          error?.meta?.target?.includes('magicLinkSlug');
+
+        if (!isSlugCollision || attempt === MAX_SLUG_RETRIES - 1) {
+          throw error;
+        }
+      }
+    }
+
+    throw new AppException(
+      ExceptionCodes.INTERNAL_ERROR,
+      'Failed to generate unique slug',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 
   /**
@@ -228,6 +281,8 @@ export class CompanyService {
 
   /**
    * Validates that the user does not already have a membership (any status).
+   * @param userId - The user unique identifier.
+   * @throws AppException if a membership already exists for the user.
    */
   private async ensureUserHasNoMembership(userId: string): Promise<void> {
     const existing = await this.prisma.companyMembership.findUnique({

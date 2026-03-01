@@ -7,12 +7,23 @@ import { handleApiError } from '@/utils/error-handler'
 import { MemberRole, type MembershipStatus } from '@/types'
 
 export function useCreateCompany() {
-  const setRole = useAuthStore.getState().setRole
-
   return useMutation({
     mutationFn: companyApi.create,
-    onSuccess: () => {
-      setRole(MemberRole.ADMIN)
+    onSuccess: data => {
+      const store = useAuthStore.getState()
+      const user = store.user
+
+      if (user) {
+        store.setUser({
+          ...user,
+          companyId: data.id,
+          role: MemberRole.ADMIN,
+          company: { name: data.name, magicLinkSlug: data.magicLinkSlug },
+        })
+      } else {
+        store.setRole(MemberRole.ADMIN)
+      }
+
       queryClient.invalidateQueries({ queryKey: authKeys.me() })
     },
     onError: error =>

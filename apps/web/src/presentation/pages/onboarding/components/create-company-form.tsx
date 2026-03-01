@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import {
@@ -6,6 +7,7 @@ import {
   type CreateCompanyFormData,
 } from '@/schemas/company.schemas'
 import { useCreateCompany } from '@/services/hooks/use-company'
+import { Routes } from '@/router/routes'
 import {
   Form,
   FormControl,
@@ -18,6 +20,7 @@ import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 
 export function CreateCompanyForm() {
+  const navigate = useNavigate()
   const createCompany = useCreateCompany()
 
   const form = useForm<CreateCompanyFormData>({
@@ -29,6 +32,7 @@ export function CreateCompanyForm() {
     createCompany.mutate(data, {
       onSuccess: () => {
         toast.success('Company created! You are the admin.')
+        navigate(Routes.DASHBOARD)
       },
     })
   }
