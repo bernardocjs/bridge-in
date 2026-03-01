@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+buildCommand = "yarn install --frozen-lockfile && yarn workspace api prisma generate && yarn workspace api build"
+
+[deploy]
+startCommand = "cd apps/api && npx prisma migrate deploy && node dist/main"
+healthcheckPath = "/api"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+
+[[services]]
+name = "api"
