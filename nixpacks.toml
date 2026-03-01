@@ -1,2 +1,5 @@
 [phases.install]
-cmds = ["yarn install --frozen-lockfile --ignore-engines"]
+cmds = ["yarn install --frozen-lockfile --ignore-engines --production=false"]
+
+[phases.build]
+cmds = ["cd apps/api && npx prisma generate && npx nest build"]

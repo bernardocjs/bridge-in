@@ -1,6 +1,5 @@
 [build]
 builder = "nixpacks"
-buildCommand = "yarn workspace api prisma generate && yarn workspace api build"
 
 [variables]
 NIXPACKS_NODE_VERSION = "23"
