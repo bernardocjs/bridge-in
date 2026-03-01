@@ -33,6 +33,13 @@ export interface DashboardStatsResponse {
   byPriority: Record<ReportPriority, number>
 }
 
+export interface MonthlyCountItem {
+  month: string
+  count: number
+}
+
+export type MonthlyCountResponse = MonthlyCountItem[]
+
 export interface CreateReportInput {
   title: string
   content: string

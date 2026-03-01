@@ -47,3 +47,10 @@ export function useDashboard() {
     queryFn: reportApi.getDashboard,
   })
 }
+
+export function useMonthlyCount() {
+  return useQuery({
+    queryKey: reportKeys.monthlyCount(),
+    queryFn: reportApi.getMonthlyCount,
+  })
+}

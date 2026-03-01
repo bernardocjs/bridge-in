@@ -37,3 +37,10 @@ export interface DashboardStatsResponse {
   byStatus: Record<string, number>;
   byPriority: Record<string, number>;
 }
+
+export interface MonthlyCountItem {
+  month: string;
+  count: number;
+}
+
+export type MonthlyCountResponse = MonthlyCountItem[];

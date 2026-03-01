@@ -10,6 +10,7 @@ import { PrismaService } from '../../providers/database/prisma.service';
 import { CreateReportDto, QueryReportDto, UpdateReportDto } from './dtos';
 import {
   DashboardStatsResponse,
+  MonthlyCountResponse,
   ReportDetailResponse,
   ReportListResponse,
   ReportSummaryResponse,
@@ -211,6 +212,50 @@ export class ReportService {
    * @param companyId - The company identifier to scope the aggregation.
    * @returns Breakdown of reports by status and priority, plus total count.
    */
+  /**
+   * Returns the count of reports per month for the last 12 months.
+   *
+   * @param companyId - The company identifier to scope the aggregation.
+   * @returns Array of { month, count } for the last 12 months.
+   */
+  async getMonthlyCount(companyId: string): Promise<MonthlyCountResponse> {
+    const now = new Date();
+    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+
+    const reports = await this.prisma.report.groupBy({
+      by: ['createdAt'],
+      where: {
+        companyId,
+        createdAt: { gte: twelveMonthsAgo },
+      },
+      _count: { id: true },
+    });
+
+    const monthMap = new Map<string, number>();
+
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthMap.set(key, 0);
+    }
+
+    for (const row of reports) {
+      const d = new Date(row.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (monthMap.has(key)) {
+        monthMap.set(
+          key,
+          monthMap.get(key)! + (row._count as { id: number }).id,
+        );
+      }
+    }
+
+    return Array.from(monthMap.entries()).map(([month, count]) => ({
+      month,
+      count,
+    }));
+  }
+
   async getDashboardStats(companyId: string): Promise<DashboardStatsResponse> {
     const [statusCounts, priorityCounts, total] =
       await this.prisma.$transaction([

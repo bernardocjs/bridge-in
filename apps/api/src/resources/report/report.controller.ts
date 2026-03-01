@@ -18,6 +18,7 @@ import { ReportService } from './report.service';
 import { CreateReportDto, QueryReportDto, UpdateReportDto } from './dtos';
 import {
   DashboardStatsResponse,
+  MonthlyCountResponse,
   ReportDetailResponse,
   ReportListResponse,
   ReportSummaryResponse,
@@ -83,6 +84,23 @@ export class ReportController {
     @CurrentUser() user: JwtPayload,
   ): Promise<DashboardStatsResponse> {
     return this.reportService.getDashboardStats(user.companyId!);
+  }
+
+  /**
+   * Returns the count of reports per month for the last 12 months.
+   *
+   * @param user - JWT payload of the authenticated user.
+   * @returns Array with month and count for the last 12 months.
+   */
+  @ApiOperation({
+    summary: 'Get monthly report count for the last 12 months',
+  })
+  @UseGuards(HasCompanyGuard)
+  @Get('monthly-count')
+  getMonthlyCount(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<MonthlyCountResponse> {
+    return this.reportService.getMonthlyCount(user.companyId!);
   }
 
   /**

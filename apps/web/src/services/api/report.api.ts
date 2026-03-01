@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/api-client'
 import type {
   CreateReportInput,
   DashboardStatsResponse,
+  MonthlyCountResponse,
   PaginatedResponse,
   ReportDetailResponse,
   ReportFilters,
@@ -35,5 +36,10 @@ export const reportApi = {
   getDashboard: () =>
     apiClient
       .get<DashboardStatsResponse>('/reports/dashboard')
+      .then(r => r.data),
+
+  getMonthlyCount: () =>
+    apiClient
+      .get<MonthlyCountResponse>('/reports/monthly-count')
       .then(r => r.data),
 }

@@ -29,4 +29,5 @@ export const reportKeys = {
     [...reportKeys.all, 'list', filters] as const,
   detail: (id: string) => [...reportKeys.all, 'detail', id] as const,
   dashboard: () => [...reportKeys.all, 'dashboard'] as const,
+  monthlyCount: () => [...reportKeys.all, 'monthly-count'] as const,
 }
