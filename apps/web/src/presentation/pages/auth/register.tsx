@@ -43,8 +43,8 @@ export function RegisterPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className='text-center'>
+    <Card className='border-border/40 shadow-xl'>
+      <CardHeader className='pb-2 text-center'>
         <CardTitle className='text-xl'>Create an account</CardTitle>
         <CardDescription>
           Sign up to start reporting or managing

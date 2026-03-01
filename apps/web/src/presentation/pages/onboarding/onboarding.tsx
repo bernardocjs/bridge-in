@@ -11,6 +11,7 @@ import { useCreateCompany, useJoinCompany } from '@/services/hooks/use-company'
 import { getApiErrorCode } from '@/utils/error-handler'
 import { Routes } from '@/router/routes'
 import { useAuthStore } from '@/stores/auth.store'
+import { useLogout } from '@/services/hooks/use-auth'
 import {
   Card,
   CardContent,
@@ -39,6 +40,7 @@ import { Clock } from 'lucide-react'
 export function OnboardingPage() {
   const navigate = useNavigate()
   const user = useAuthStore(s => s.user)
+  const logout = useLogout()
   const createCompany = useCreateCompany()
   const joinCompany = useJoinCompany()
   const [joinSlug, setJoinSlug] = useState('')
@@ -53,8 +55,6 @@ export function OnboardingPage() {
     createCompany.mutate(data, {
       onSuccess: () => {
         toast.success('Company created! You are the admin.')
-        // Small delay to let /me refetch hydrate the store
-        setTimeout(() => navigate(Routes.DASHBOARD), 300)
       },
     })
   }
@@ -76,7 +76,6 @@ export function OnboardingPage() {
         }
       },
       onError: error => {
-        // Toast is handled by the hook; only handle page-specific side effects
         const code = getApiErrorCode(error)
         if (code === 'MEMBERSHIP_PENDING') {
           setPendingRequest(true)
@@ -88,9 +87,11 @@ export function OnboardingPage() {
   // If user already submitted a join request
   if (pendingRequest) {
     return (
-      <Card>
-        <CardContent className='flex flex-col items-center py-10 text-center'>
-          <Clock className='mb-4 h-12 w-12 text-tag-warning' />
+      <Card className='border-border/40 shadow-xl'>
+        <CardContent className='flex flex-col items-center py-12 text-center'>
+          <div className='mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-tag-warning/10'>
+            <Clock className='h-8 w-8 animate-pulse text-tag-warning' />
+          </div>
           <h3 className='text-lg font-semibold'>Request Pending</h3>
           <p className='mt-2 max-w-xs text-sm text-neutral'>
             Your join request has been submitted. An admin needs to approve it
@@ -100,7 +101,7 @@ export function OnboardingPage() {
             variant='outline'
             className='mt-6'
             onClick={() => {
-              useAuthStore.getState().logout()
+              logout()
               navigate(Routes.LOGIN)
             }}
           >
@@ -112,8 +113,8 @@ export function OnboardingPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className='text-center'>
+    <Card className='border-border/40 shadow-xl'>
+      <CardHeader className='pb-2 text-center'>
         <CardTitle className='text-xl'>Get Started</CardTitle>
         <CardDescription>
           {user?.name ? `Hi ${user.name}! ` : ''}Create a new company or join an

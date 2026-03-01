@@ -5,13 +5,32 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* ── Base ─────────────────────────────────────────── */
   --background: hsl(220 14% 96%);
   --row-table: hsl(210 20% 98%);
   --foreground: hsl(222.2 84% 4.9%);
   --border: hsl(220 13% 91%);
   --white: hsl(0 0% 100%);
   --tab-line: hsl(218 11% 65%);
-  --input: hsl(0 0% 88%);
+  --input: hsl(220 13% 91%);
+  --ring: hsl(355 64% 57%);
+
+  /* ── Semantic (shadcn/ui) ─────────────────────────── */
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222.2 84% 4.9%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 84% 4.9%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsla(220, 14%, 96%, 1);
+  --secondary-foreground: hsla(215, 28%, 17%, 1);
+  --muted: hsla(220, 14%, 96%, 1);
+  --muted-foreground: hsla(224, 8%, 46%, 1);
+  --accent: hsla(220, 14%, 96%, 1);
+  --accent-foreground: hsla(221, 39%, 11%, 1);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  /* ── Primary scale ────────────────────────────────── */
   --primary-50: hsl(356 63% 95%);
   --primary-100: hsl(355 64% 89%);
   --primary-200: hsl(355 63% 79%);
@@ -22,13 +41,19 @@
   --primary-700: hsl(355 73% 28%);
   --primary-800: hsl(355 73% 9%);
   --primary-900: hsla(355, 73%, 9%);
+
+  /* ── Feedback ─────────────────────────────────────── */
   --success-500: hsl(142 71% 45%);
   --success-600: hsl(158, 64%, 33%);
   --error-500: hsl(0 84% 60%);
   --error-600: hsl(355 73% 37%);
   --blue-50: hsl(201 100% 94%);
   --blue-500: hsl(200 91% 43%);
+
+  /* ── Radius ───────────────────────────────────────── */
   --radius: 0.5rem;
+
+  /* ── Neutral scale ────────────────────────────────── */
   --neutral-50: hsla(210, 20%, 98%, 1);
   --neutral-100: hsla(220, 14%, 96%, 1);
   --neutral-200: hsla(220, 13%, 91%, 1);
@@ -39,15 +64,21 @@
   --neutral-700: hsla(217, 19%, 27%, 1);
   --neutral-800: hsla(215, 28%, 17%, 1);
   --neutral-900: hsla(221, 39%, 11%, 1);
+
+  /* ── Sidebar ──────────────────────────────────────── */
   --sidebar-background: hsla(232, 13%, 14%, 1);
   --sidebar-disabled-top: hsla(228, 9%, 22%, 1);
   --sidebar-item-active: hsla(358, 72%, 28%, 1);
   --sidebar-item-active-border: hsla(0, 92%, 42%, 1);
+
+  /* ── Tags ─────────────────────────────────────────── */
   --tag-success: hsl(158, 64%, 33%);
   --tag-warning: hsl(46, 84%, 45%);
   --tag-info: hsl(205, 100%, 49%);
   --tag-default: hsl(30, 1%, 43%);
   --tag-inactive: hsl(0, 0%, 86%);
+
+  /* ── Charts ───────────────────────────────────────── */
   --chart-bar: hsl(193, 100%, 39%);
   --chart-1: hsl(99, 100%, 37%);
   --chart-2: hsl(292, 96%, 42%);
@@ -62,6 +93,7 @@
 }
 
 .dark {
+  /* ── Base ─────────────────────────────────────────── */
   --background: hsl(222.2 84% 4.9%);
   --row-table: hsl(212, 21%, 14%);
   --foreground: hsl(210 20% 98%);
@@ -69,6 +101,24 @@
   --white: hsl(222.2 84% 4.9%);
   --tab-line: hsl(216, 19%, 30%);
   --input: hsl(216, 19%, 30%);
+  --ring: hsl(355 64% 35%);
+
+  /* ── Semantic (shadcn/ui) ─────────────────────────── */
+  --card: hsla(215, 28%, 17%, 1);
+  --card-foreground: hsl(210 20% 98%);
+  --popover: hsla(215, 28%, 17%, 1);
+  --popover-foreground: hsl(210 20% 98%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsla(217, 19%, 27%, 1);
+  --secondary-foreground: hsla(210, 20%, 98%, 1);
+  --muted: hsla(217, 19%, 27%, 1);
+  --muted-foreground: hsla(218, 11%, 65%, 1);
+  --accent: hsla(217, 19%, 27%, 1);
+  --accent-foreground: hsla(0, 0%, 100%, 1);
+  --destructive: hsl(0 62% 50%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  /* ── Primary scale ────────────────────────────────── */
   --primary-50: hsl(355, 64%, 15%);
   --primary-100: hsl(355, 64%, 20%);
   --primary-200: hsl(355, 63%, 25%);
@@ -79,13 +129,18 @@
   --primary-700: hsl(355 73% 72%);
   --primary-800: hsl(355 64% 80%);
   --primary-900: hsl(355, 64%, 85%);
+
+  /* ── Feedback ─────────────────────────────────────── */
   --success-500: hsl(142 71% 65%);
   --success-600: hsl(158, 64%, 53%);
   --error-500: hsl(0 84% 80%);
   --error-600: hsl(355 73% 67%);
   --blue-50: hsl(201 100% 24%);
   --blue-500: hsl(200 91% 63%);
+
   --radius: 0.5rem;
+
+  /* ── Neutral scale ────────────────────────────────── */
   --neutral-50: hsla(221, 39%, 11%, 1);
   --neutral-100: hsla(215, 28%, 17%, 1);
   --neutral-200: hsla(217, 19%, 27%, 1);
@@ -96,15 +151,21 @@
   --neutral-700: hsla(220, 14%, 96%, 1);
   --neutral-800: hsla(210, 20%, 98%, 1);
   --neutral-900: hsla(0, 0%, 100%, 1);
+
+  /* ── Sidebar ──────────────────────────────────────── */
   --sidebar-background: hsla(232, 13%, 24%, 1);
   --sidebar-disabled-top: hsla(228, 9%, 32%, 1);
   --sidebar-item-active: hsla(358, 72%, 48%, 1);
   --sidebar-item-active-border: hsla(0, 92%, 62%, 1);
+
+  /* ── Tags ─────────────────────────────────────────── */
   --tag-success: hsl(158, 64%, 53%);
   --tag-warning: hsl(46, 84%, 65%);
   --tag-info: hsl(205, 100%, 69%);
   --tag-default: hsl(30, 1%, 63%);
   --tag-inactive: hsl(0, 0%, 66%);
+
+  /* ── Charts ───────────────────────────────────────── */
   --chart-bar: hsl(193, 100%, 59%);
   --chart-1: hsl(99, 100%, 57%);
   --chart-2: hsl(292, 96%, 62%);
@@ -119,6 +180,7 @@
 }
 
 @theme inline {
+  /* ── Base ─────────────────────────────────────────── */
   --color-background: var(--background);
   --color-row-table: var(--row-table);
   --color-foreground: var(--foreground);
@@ -126,6 +188,24 @@
   --color-white: var(--white);
   --color-tab-line: var(--tab-line);
   --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* ── Semantic (shadcn/ui) ─────────────────────────── */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* ── Primary scale ────────────────────────────────── */
   --color-primary-50: var(--primary-50);
   --color-primary-100: var(--primary-100);
   --color-primary-200: var(--primary-200);
@@ -136,13 +216,18 @@
   --color-primary-700: var(--primary-700);
   --color-primary-800: var(--primary-800);
   --color-primary-900: var(--primary-900);
+
+  /* ── Feedback ─────────────────────────────────────── */
   --color-success: var(--success-500);
   --color-success-600: var(--success-600);
   --color-error: var(--error-500);
   --color-error-600: var(--error-600);
   --color-blue-50: var(--blue-50);
   --color-blue: var(--blue-500);
+
   --radius: var(--radius);
+
+  /* ── Neutral scale ────────────────────────────────── */
   --color-neutral-50: var(--neutral-50);
   --color-neutral-100: var(--neutral-100);
   --color-neutral-200: var(--neutral-200);
@@ -153,15 +238,21 @@
   --color-neutral-700: var(--neutral-700);
   --color-neutral-800: var(--neutral-800);
   --color-neutral-900: var(--neutral-900);
+
+  /* ── Sidebar ──────────────────────────────────────── */
   --color-sidebar-background: var(--sidebar-background);
   --color-sidebar-disabled-top: var(--sidebar-disabled-top);
   --color-sidebar-item-active: var(--sidebar-item-active);
   --color-sidebar-item-active-border: var(--sidebar-item-active-border);
+
+  /* ── Tags ─────────────────────────────────────────── */
   --color-tag-success: var(--tag-success);
   --color-tag-warning: var(--tag-warning);
   --color-tag-info: var(--tag-info);
   --color-tag-default: var(--tag-default);
   --color-tag-inactive: var(--tag-inactive);
+
+  /* ── Charts ───────────────────────────────────────── */
   --color-chart-bar: var(--chart-bar);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -173,4 +264,14 @@
   --color-chart-8: var(--chart-8);
   --color-chart-9: var(--chart-9);
   --color-chart-10: var(--chart-10);
+
+  /* ── Font ─────────────────────────────────────────── */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* ── Global smoothing ──────────────────────────────── */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }

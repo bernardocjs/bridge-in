@@ -73,7 +73,7 @@ export function ReportDetailPage() {
       <Button
         variant='ghost'
         size='sm'
-        className='mb-4 gap-1 text-neutral'
+        className='mb-4 gap-1.5 text-neutral-400 hover:text-foreground'
         onClick={() => navigate(-1)}
       >
         <ArrowLeft className='h-4 w-4' /> Back

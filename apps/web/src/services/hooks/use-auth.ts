@@ -13,11 +13,17 @@ export function useLogin() {
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: ({ accessToken }) => {
+      queryClient.removeQueries({ queryKey: authKeys.me() })
       setToken(accessToken)
-      queryClient.invalidateQueries({ queryKey: authKeys.me() })
     },
     onError: error => handleApiError(error, { fallback: 'Login failed.' }),
   })
+}
+export function useLogout() {
+  return () => {
+    queryClient.removeQueries({ queryKey: authKeys.me() })
+    useAuthStore.getState().logout()
+  }
 }
 
 export function useRegister() {

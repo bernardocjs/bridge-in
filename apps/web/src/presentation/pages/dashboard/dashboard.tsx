@@ -55,25 +55,29 @@ const statCards = [
     key: 'total',
     label: 'Total Reports',
     icon: FileText,
-    color: 'text-foreground',
+    color: 'text-primary',
+    bg: 'bg-primary-50 dark:bg-primary-900/30',
   },
   {
     key: ReportStatus.OPEN,
     label: 'Open',
     icon: AlertCircle,
     color: 'text-blue',
+    bg: 'bg-blue-50 dark:bg-blue-50',
   },
   {
     key: ReportStatus.IN_PROGRESS,
     label: 'In Progress',
     icon: Clock,
     color: 'text-tag-warning',
+    bg: 'bg-tag-warning/10',
   },
   {
     key: ReportStatus.RESOLVED,
     label: 'Resolved',
     icon: CheckCircle2,
     color: 'text-success-600',
+    bg: 'bg-success/10',
   },
 ] as const
 
@@ -101,18 +105,21 @@ export function DashboardPage() {
 
       {/* Stat cards */}
       <div className='mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        {statCards.map(({ key, label, icon: Icon, color }) => (
-          <Card key={key}>
+        {statCards.map(({ key, label, icon: Icon, color, bg }) => (
+          <Card
+            key={key}
+            className='transition-shadow duration-200 hover:shadow-md'
+          >
             <CardContent className='flex items-center gap-4 pt-6'>
-              <div className={`rounded-lg bg-neutral-100 p-3 ${color}`}>
+              <div className={`rounded-xl p-3 ${bg} ${color}`}>
                 <Icon className='h-5 w-5' />
               </div>
               <div>
-                <p className='text-sm text-neutral'>{label}</p>
+                <p className='text-sm font-medium text-neutral'>{label}</p>
                 {isLoading ? (
-                  <Skeleton className='mt-1 h-7 w-12' />
+                  <Skeleton className='mt-1 h-8 w-14' />
                 ) : (
-                  <p className='text-2xl font-bold'>
+                  <p className='text-3xl font-bold tracking-tight'>
                     {key === 'total'
                       ? (stats?.total ?? 0)
                       : (stats?.byStatus[key as ReportStatus] ?? 0)}
@@ -128,7 +135,9 @@ export function DashboardPage() {
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
         <Card>
           <CardHeader>
-            <CardTitle className='text-base'>Reports by Status</CardTitle>
+            <CardTitle className='text-base font-semibold'>
+              Reports by Status
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -162,7 +171,9 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className='text-base'>Reports by Priority</CardTitle>
+            <CardTitle className='text-base font-semibold'>
+              Reports by Priority
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (

@@ -63,9 +63,11 @@ export function AnonymousReportPage() {
   // Invalid or expired slug
   if (!companyLoading && isError) {
     return (
-      <Card className='mx-auto max-w-md'>
-        <CardContent className='flex flex-col items-center py-10 text-center'>
-          <AlertTriangle className='mb-4 h-12 w-12 text-tag-warning' />
+      <Card className='mx-auto max-w-md border-border/40 shadow-lg'>
+        <CardContent className='flex flex-col items-center py-12 text-center'>
+          <div className='mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-tag-warning/10'>
+            <AlertTriangle className='h-8 w-8 text-tag-warning' />
+          </div>
           <h3 className='text-lg font-semibold'>Link Not Found</h3>
           <p className='mt-2 text-sm text-neutral'>
             This report link is invalid or has been rotated. Please contact the
@@ -79,9 +81,11 @@ export function AnonymousReportPage() {
   // Success state
   if (submitted) {
     return (
-      <Card className='mx-auto max-w-md'>
-        <CardContent className='flex flex-col items-center py-10 text-center'>
-          <CheckCircle2 className='mb-4 h-12 w-12 text-success-600' />
+      <Card className='mx-auto max-w-md border-border/40 shadow-lg'>
+        <CardContent className='flex flex-col items-center py-12 text-center'>
+          <div className='mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-success/10'>
+            <CheckCircle2 className='h-8 w-8 text-success-600' />
+          </div>
           <h3 className='text-lg font-semibold'>Report Submitted</h3>
           <p className='mt-2 max-w-xs text-sm text-neutral'>
             Your anonymous report has been securely submitted to{' '}
@@ -103,7 +107,7 @@ export function AnonymousReportPage() {
   }
 
   return (
-    <Card>
+    <Card className='border-border/40 shadow-lg'>
       <CardHeader>
         <CardTitle>Submit an Anonymous Report</CardTitle>
         <CardDescription>

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginFormData } from '@/schemas/auth.schemas'
@@ -23,7 +23,6 @@ import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 
 export function LoginPage() {
-  const navigate = useNavigate()
   const login = useLogin()
 
   const form = useForm<LoginFormData>({
@@ -32,16 +31,12 @@ export function LoginPage() {
   })
 
   const onSubmit = (data: LoginFormData) => {
-    login.mutate(data, {
-      onSuccess: () => {
-        navigate(Routes.DASHBOARD)
-      },
-    })
+    login.mutate(data)
   }
 
   return (
-    <Card>
-      <CardHeader className='text-center'>
+    <Card className='border-border/40 shadow-xl'>
+      <CardHeader className='pb-2 text-center'>
         <CardTitle className='text-xl'>Welcome back</CardTitle>
         <CardDescription>Sign in to your account</CardDescription>
       </CardHeader>
