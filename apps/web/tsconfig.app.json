@@ -23,12 +23,7 @@
     /* Paths */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@components": ["./src/components"],
-      "@icons": ["./src/components/icons"],
-      "@types": ["./src/domain/types"],
-      "@hooks": ["./src/hooks"],
-      "@utils": ["./src/utils"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]

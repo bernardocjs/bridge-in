@@ -19,14 +19,7 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@": ["./src"],
-      "@/": ["./src/"],
-      "@/*": ["./src/*"],
-      "@components": ["./src/components"],
-      "@icons": ["./src/components/icons"],
-      "@types": ["./src/domain/types"],
-      "@hooks": ["./src/hooks"],
-      "@utils": ["./src/utils"]
+      "@/*": ["./src/*"]
     },
     "stripInternal": true,
     "pretty": true,
