@@ -1,5 +1,5 @@
 {
-  "name": "deer-ticket",
+  "name": "bridge-in",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -16,7 +16,7 @@
     "typescript": "5.8.2"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.12.0"
   },
   "packageManager": "yarn@1.22.22",
   "workspaces": [

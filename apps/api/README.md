@@ -1,88 +1,60 @@
 <div align="center">
-  <h1>🦌 Deer Ticket</h1>
-  <p>A modern file storage platform to collaborate on design files with a simple and intuitive interface.</p>
-
+  <h1>🔒 Bridge-In API</h1>
+  <p>REST API for anonymous report management — built with NestJS, Prisma and PostgreSQL.</p>
 </div>
 
 ## 🔍 Overview
 
-Deer Storage is a streamlined platform designed for designers and customers to collaborate on design files. Upload, review, and provide feedback on designs with a simple and intuitive interface.
-
-## ✨ Features
-
-- **📂 File Upload** - Upload design files in various formats
-- **🔍 File Preview** - View design files directly in the browser
-- **💬 Commenting** - Provide feedback on designs with comments
-- **📝 Annotations** - Add annotations to designs for detailed feedback
-
-## 🏗️ Architecture
-
-Deer Ticket is built as a full-stack monorepo using Turborepo with:
-
-- **Backend**: NestJS REST API with Prisma ORM
-- **Frontend**: React with Vite, TypeScript, and shadcn/ui
-- **Infrastructure**: Turborepo for monorepo management
+The Bridge-In API handles all business logic: authentication, company management, member control, and receiving/managing anonymous reports.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 16+
-- yarn (recommended) or npm/yarn
+- Node.js `>=22.12.0`
+- Yarn `>=1.22`
+- Docker (for the local database)
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/devzgabriel/deer-ticket.git
-cd deer-ticket
-
-# Install dependencies
+# From the monorepo root
 yarn install
 
-# Configure environment variables
+# Set up environment variables
 cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env with your database settings
+# Edit apps/api/.env with your settings
+```
 
-# Setup the database
-yarn prisma migrate dev
+### Database
+
+```bash
+# Start PostgreSQL via Docker
+docker-compose -f apps/api/docker-compose.yml up -d
+
+# Run migrations
+yarn db:migrate
+
+# (Optional) Run seed
+cd apps/api && yarn db:seed
 ```
 
 ### Development
 
 ```bash
-# Start all services
+# From the monorepo root
 yarn dev
+
+# Or API only
+yarn workspace api dev
 ```
 
-Access the app at:
+API available at http://localhost:3000  
+Swagger at http://localhost:3000/api/docs
 
-- Frontend: [http://localhost:5173](http://localhost:5173)
-- API: [http://localhost:3000](http://localhost:3000)
-
-### Database Management
+### Tests
 
 ```bash
-# Run database migrations
-yarn prisma migrate dev
+yarn workspace api test
+yarn workspace api test:cov
 ```
-
-### Building for Production
-
-```bash
-# Build all packages
-yarn build
-```
-
-## 💻 Tech Stack
-
-### Backend (NestJS)
-
-- REST API with full CRUD operations
-- Prisma ORM with SQLite database
-- Input validation with class-validator
-- Skill-based ticket assignment logic
-
-<div align="center">
-  <p>Made with ❤️ by Gabriel</p>
-</div>
