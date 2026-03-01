@@ -7,8 +7,8 @@ NIXPACKS_NODE_VERSION = "23"
 
 [deploy]
 startCommand = "cd apps/api && npx prisma migrate deploy && node dist/main"
-healthcheckPath = "/api"
-healthcheckTimeout = 30
+healthcheckPath = "/api/health"
+healthcheckTimeout = 10
 restartPolicyType = "on_failure"
 
 [[services]]
