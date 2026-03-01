@@ -2,14 +2,12 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
-import axios from 'axios'
 import {
   createReportSchema,
   type CreateReportFormData,
 } from '@/schemas/report.schemas'
-import { useCompanyBySlug } from '@/services/company.service'
-import { useCreateAnonymousReport } from '@/services/report.service'
+import { useCompanyBySlug } from '@/services/hooks/use-company'
+import { useCreateAnonymousReport } from '@/services/hooks/use-report'
 import {
   Card,
   CardContent,
@@ -57,23 +55,6 @@ export function AnonymousReportPage() {
       {
         onSuccess: () => {
           setSubmitted(true)
-        },
-        onError: error => {
-          if (axios.isAxiosError(error)) {
-            if (error.response?.status === 429) {
-              toast.error(
-                'Too many submissions. Please wait a moment and try again.',
-              )
-            } else if (
-              error.response?.data?.code === 'COMPANY_INVALID_MAGIC_LINK'
-            ) {
-              toast.error('This report link is no longer valid.')
-            } else {
-              toast.error(
-                error.response?.data?.message ?? 'Failed to submit report',
-              )
-            }
-          }
         },
       },
     )

@@ -1,6 +1,6 @@
 import { Outlet, useParams } from 'react-router-dom'
 import { ShieldAlert } from 'lucide-react'
-import { useCompanyBySlug } from '@/services/company.service'
+import { useCompanyBySlug } from '@/services/hooks/use-company'
 import { Skeleton } from '@/presentation/components/ui/skeleton'
 
 /**

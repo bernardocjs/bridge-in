@@ -1,10 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
-import axios from 'axios'
 import { loginSchema, type LoginFormData } from '@/schemas/auth.schemas'
-import { useLogin } from '@/services/auth.service'
+import { useLogin } from '@/services/hooks/use-auth'
 import { Routes } from '@/router/routes'
 import {
   Card,
@@ -37,16 +35,6 @@ export function LoginPage() {
     login.mutate(data, {
       onSuccess: () => {
         navigate(Routes.DASHBOARD)
-      },
-      onError: error => {
-        if (axios.isAxiosError(error)) {
-          const code = error.response?.data?.code
-          if (code === 'AUTH_INVALID_CREDENTIALS') {
-            toast.error('Invalid email or password')
-          } else {
-            toast.error(error.response?.data?.message ?? 'Login failed')
-          }
-        }
       },
     })
   }

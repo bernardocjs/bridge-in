@@ -1,40 +1,22 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
-import { authKeys } from '@/lib/constants'
+import { authApi } from '@/services/api/auth.api'
+import { authKeys } from '@/lib/query-client'
 import { queryClient } from '@/lib/query-client'
 import { decodeJwtPayload } from '@/lib/decode-jwt'
 import { useAuthStore } from '@/stores/auth.store'
-import type {
-  AuthTokenResponse,
-  LoginInput,
-  RegisterInput,
-  UserProfile,
-  MemberRole,
-} from '@/types'
-
-// ── API calls (pure, testable) ─────────────────────────────────────────────
-
-const loginApi = (data: LoginInput) =>
-  apiClient.post<AuthTokenResponse>('/auth/login', data).then(r => r.data)
-
-const registerApi = (data: RegisterInput) =>
-  apiClient.post<AuthTokenResponse>('/auth/register', data).then(r => r.data)
-
-const getMeApi = () =>
-  apiClient.get<Omit<UserProfile, 'role'>>('/auth/me').then(r => r.data)
-
-// ── Hooks ──────────────────────────────────────────────────────────────────
+import { handleApiError } from '@/utils/error-handler'
+import type { MemberRole, UserProfile } from '@/types'
 
 export function useLogin() {
   const { setToken } = useAuthStore.getState()
 
   return useMutation({
-    mutationFn: loginApi,
+    mutationFn: authApi.login,
     onSuccess: ({ accessToken }) => {
       setToken(accessToken)
-      // Immediately fetch the user profile to hydrate the store
       queryClient.invalidateQueries({ queryKey: authKeys.me() })
     },
+    onError: error => handleApiError(error, { fallback: 'Login failed.' }),
   })
 }
 
@@ -42,11 +24,13 @@ export function useRegister() {
   const { setToken } = useAuthStore.getState()
 
   return useMutation({
-    mutationFn: registerApi,
+    mutationFn: authApi.register,
     onSuccess: ({ accessToken }) => {
       setToken(accessToken)
       queryClient.invalidateQueries({ queryKey: authKeys.me() })
     },
+    onError: error =>
+      handleApiError(error, { fallback: 'Registration failed.' }),
   })
 }
 
@@ -62,7 +46,7 @@ export function useMe() {
   return useQuery({
     queryKey: authKeys.me(),
     queryFn: async () => {
-      const profile = await getMeApi()
+      const profile = await authApi.getMe()
 
       // Derive role from JWT since /me doesn't return it
       let role: MemberRole | null = null

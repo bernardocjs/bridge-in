@@ -31,8 +31,6 @@ export function tenantExtension() {
         async findUnique({ args, query }) {
           const tenantId = getCurrentTenantId();
           if (tenantId) {
-            // findUnique requires unique fields in where, so we convert to findFirst
-            // by returning query with an additional companyId filter
             args.where = { ...args.where, companyId: tenantId } as any;
           }
           return query(args);

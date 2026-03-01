@@ -2,7 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
 import { Toaster } from '@/presentation/components/ui/sonner'
 import { queryClient } from '@/lib/query-client'
-import { useMe } from '@/services/auth.service'
+import { useMe } from '@/services/hooks/use-auth'
 import { useAuthStore } from '@/stores/auth.store'
 import { router } from '@/router'
 
@@ -15,7 +15,6 @@ function AppBootstrap() {
   const token = useAuthStore(s => s.token)
   const { isLoading } = useMe()
 
-  // If we have a token but haven't resolved /me yet, show a spinner
   if (token && isLoading) {
     return (
       <div className='flex h-screen items-center justify-center bg-background'>

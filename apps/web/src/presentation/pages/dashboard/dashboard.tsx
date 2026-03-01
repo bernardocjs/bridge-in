@@ -1,4 +1,4 @@
-import { useDashboard } from '@/services/report.service'
+import { useDashboard } from '@/services/hooks/use-report'
 import { ReportStatus, ReportPriority } from '@/types'
 import { PageHeader } from '@/presentation/components/shared/page-header'
 import {

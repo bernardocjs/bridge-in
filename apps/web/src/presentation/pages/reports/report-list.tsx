@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
-import { useReports } from '@/services/report.service'
+import { useReports } from '@/services/hooks/use-report'
 import { ReportStatus, ReportPriority } from '@/types'
 import type { ReportFilters } from '@/types'
 import { PageHeader } from '@/presentation/components/shared/page-header'

@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
-import { useReportById, useUpdateReport } from '@/services/report.service'
+import { useReportById, useUpdateReport } from '@/services/hooks/use-report'
 import { ReportStatus, ReportPriority } from '@/types'
 import { PageHeader } from '@/presentation/components/shared/page-header'
 import { StatusBadge } from '@/presentation/components/shared/status-badge'
@@ -35,7 +35,6 @@ export function ReportDetailPage() {
       { id, data: { status } },
       {
         onSuccess: () => toast.success('Status updated'),
-        onError: () => toast.error('Failed to update status'),
       },
     )
   }
@@ -45,7 +44,6 @@ export function ReportDetailPage() {
       { id, data: { priority } },
       {
         onSuccess: () => toast.success('Priority updated'),
-        onError: () => toast.error('Failed to update priority'),
       },
     )
   }

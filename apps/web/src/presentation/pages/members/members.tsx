@@ -6,7 +6,7 @@ import {
   useReviewMembership,
   useMyCompany,
   useRotateLink,
-} from '@/services/company.service'
+} from '@/services/hooks/use-company'
 import { MembershipStatus } from '@/types'
 import { PageHeader } from '@/presentation/components/shared/page-header'
 import { EmptyState } from '@/presentation/components/shared/empty-state'
@@ -74,7 +74,6 @@ export function MembersPage() {
               : 'Member rejected',
           )
         },
-        onError: () => toast.error('Failed to review membership'),
       },
     )
   }
@@ -85,7 +84,6 @@ export function MembersPage() {
         toast.success('Magic link rotated! Old links are now invalid.')
         setRotateDialogOpen(false)
       },
-      onError: () => toast.error('Failed to rotate link'),
     })
   }
 

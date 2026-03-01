@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import axios from 'axios'
 import {
   createCompanySchema,
   type CreateCompanyFormData,
 } from '@/schemas/company.schemas'
-import { useCreateCompany, useJoinCompany } from '@/services/company.service'
+import { useCreateCompany, useJoinCompany } from '@/services/hooks/use-company'
+import { getApiErrorCode } from '@/utils/error-handler'
 import { Routes } from '@/router/routes'
 import { useAuthStore } from '@/stores/auth.store'
 import {
@@ -56,13 +56,6 @@ export function OnboardingPage() {
         // Small delay to let /me refetch hydrate the store
         setTimeout(() => navigate(Routes.DASHBOARD), 300)
       },
-      onError: error => {
-        if (axios.isAxiosError(error)) {
-          toast.error(
-            error.response?.data?.message ?? 'Failed to create company',
-          )
-        }
-      },
     })
   }
 
@@ -83,18 +76,10 @@ export function OnboardingPage() {
         }
       },
       onError: error => {
-        if (axios.isAxiosError(error)) {
-          const code = error.response?.data?.code
-          if (code === 'COMPANY_INVALID_MAGIC_LINK') {
-            toast.error('Invalid magic link. Please check and try again.')
-          } else if (code === 'COMPANY_ALREADY_ASSIGNED') {
-            toast.error('You are already assigned to a company')
-          } else if (code === 'MEMBERSHIP_PENDING') {
-            setPendingRequest(true)
-            toast.info('You already have a pending request')
-          } else {
-            toast.error(error.response?.data?.message ?? 'Failed to join')
-          }
+        // Toast is handled by the hook; only handle page-specific side effects
+        const code = getApiErrorCode(error)
+        if (code === 'MEMBERSHIP_PENDING') {
+          setPendingRequest(true)
         }
       },
     })

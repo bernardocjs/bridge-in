@@ -1,10 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
-import axios from 'axios'
 import { registerSchema, type RegisterFormData } from '@/schemas/auth.schemas'
-import { useRegister } from '@/services/auth.service'
+import { useRegister } from '@/services/hooks/use-auth'
 import { Routes } from '@/router/routes'
 import {
   Card,
@@ -39,18 +37,6 @@ export function RegisterPage() {
       {
         onSuccess: () => {
           navigate(Routes.ONBOARDING)
-        },
-        onError: error => {
-          if (axios.isAxiosError(error)) {
-            const code = error.response?.data?.code
-            if (code === 'AUTH_EMAIL_TAKEN') {
-              toast.error('This email is already registered')
-            } else {
-              toast.error(
-                error.response?.data?.message ?? 'Registration failed',
-              )
-            }
-          }
         },
       },
     )
