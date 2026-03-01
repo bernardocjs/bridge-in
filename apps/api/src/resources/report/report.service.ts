@@ -74,7 +74,6 @@ export class ReportService {
       },
     });
 
-    // Fire-and-forget: notify all approved members of the company
     this.prisma.companyMembership
       .findMany({
         where: { companyId: company.id, status: MembershipStatus.APPROVED },
@@ -91,9 +90,7 @@ export class ReportService {
           recipients,
         );
       })
-      .catch(() => {
-        // Notification failure must never affect the main flow
-      });
+      .catch(() => {});
 
     return report;
   }

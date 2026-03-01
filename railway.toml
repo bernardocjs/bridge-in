@@ -5,7 +5,7 @@ builder = "nixpacks"
 NIXPACKS_NODE_VERSION = "23"
 
 [deploy]
-startCommand = "cd apps/api && npx prisma migrate deploy && node dist/main"
+startCommand = "cd apps/api && yarn prisma migrate deploy && node dist/main"
 healthcheckPath = "/api"
 healthcheckTimeout = 10
 restartPolicyType = "on_failure"
