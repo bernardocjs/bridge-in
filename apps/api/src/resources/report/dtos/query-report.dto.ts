@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsNumberString } from 'class-validator';
+import { IsEnum, IsOptional } from 'class-validator';
 import { ReportPriority, ReportStatus } from '@prisma/client';
+import { PaginationDto } from '../../../common/helpers/pagination';
 
-export class QueryReportDto {
+export class QueryReportDto extends PaginationDto {
   @ApiProperty({
     enum: ReportStatus,
     example: ReportStatus.OPEN,
@@ -22,18 +23,4 @@ export class QueryReportDto {
   @IsEnum(ReportPriority)
   @IsOptional()
   priority?: ReportPriority;
-
-  @ApiProperty({ example: '1', description: 'Page number', required: false })
-  @IsNumberString()
-  @IsOptional()
-  page?: string;
-
-  @ApiProperty({
-    example: '10',
-    description: 'Items per page',
-    required: false,
-  })
-  @IsNumberString()
-  @IsOptional()
-  limit?: string;
 }

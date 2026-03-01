@@ -21,6 +21,17 @@ enum ReportPriority {
   CRITICAL
 }
 
+enum MemberRole {
+  ADMIN
+  MEMBER
+}
+
+enum MembershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Company {
   id   String @id @default(uuid())
   name String
@@ -31,10 +42,8 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users   User[]
-  reports Report[]
-
-  @@index([magicLinkSlug])
+  memberships CompanyMembership[]
+  reports     Report[]
 }
 
 model User {
@@ -43,13 +52,31 @@ model User {
   password String
   name     String?
 
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([companyId])
+  membership       CompanyMembership?
+  reviewedRequests CompanyMembership[] @relation("ReviewedBy")
+}
+
+model CompanyMembership {
+  id String @id @default(uuid())
+
+  userId    String
+  companyId String
+  role      MemberRole       @default(MEMBER)
+  status    MembershipStatus @default(PENDING)
+
+  requestedAt DateTime  @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  reviewer    User?     @relation("ReviewedBy", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@index([companyId, status])
 }
 
 model Report {
@@ -73,4 +100,5 @@ model Report {
 
   @@index([companyId])
   @@index([companyId, status])
+  @@index([companyId, createdAt])
 }

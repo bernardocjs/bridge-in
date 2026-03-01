@@ -1,32 +1,32 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { MembershipStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
 import { PrismaService } from '../../providers/database/prisma.service';
 import { CreateCompanyDto } from './dtos';
+import {
+  CompanyMeResponse,
+  CompanyPublicResponse,
+  CompanyResponse,
+  MagicLinkResponse,
+  MembershipRequestResponse,
+  MembershipResponse,
+} from './interfaces';
 
 @Injectable()
 export class CompanyService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Creates a new company and assigns the requesting user to it.
+   * Creates a new company and assigns the requesting user as ADMIN (auto-approved).
    * Both operations happen atomically in a transaction.
-   * @param userId - ID of the authenticated user that will own the company.
-   * @param dto - Company creation data (name).
-   * @returns The newly created company record.
    */
   async create(
     userId: string,
     dto: CreateCompanyDto,
-  ): Promise<{
-    id: string;
-    name: string;
-    magicLinkSlug: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }> {
-    await this.ensureUserHasNoCompany(userId);
+  ): Promise<CompanyResponse> {
+    await this.ensureUserHasNoMembership(userId);
 
     return this.prisma.$transaction(async (tx) => {
       const company = await tx.company.create({
@@ -36,9 +36,14 @@ export class CompanyService {
         },
       });
 
-      await tx.user.update({
-        where: { id: userId },
-        data: { companyId: company.id },
+      await tx.companyMembership.create({
+        data: {
+          userId,
+          companyId: company.id,
+          role: 'ADMIN',
+          status: 'APPROVED',
+          reviewedAt: new Date(),
+        },
       });
 
       return company;
@@ -46,20 +51,18 @@ export class CompanyService {
   }
 
   /**
-   * Joins an existing company via its magic link slug.
-   * @param userId - ID of the authenticated user joining the company.
-   * @param magicLinkSlug - Unique slug from the company invite link.
-   * @returns The joined company's public info.
+   * Requests to join an existing company via its magic link slug.
+   * Creates a PENDING membership that must be approved by an ADMIN.
    */
   async join(
     userId: string,
     magicLinkSlug: string,
-  ): Promise<{ id: string; name: string; magicLinkSlug: string }> {
-    await this.ensureUserHasNoCompany(userId);
+  ): Promise<MembershipRequestResponse> {
+    await this.ensureUserHasNoMembership(userId);
 
     const company = await this.prisma.company.findUnique({
       where: { magicLinkSlug },
-      select: { id: true, name: true, magicLinkSlug: true },
+      select: { id: true, name: true },
     });
 
     if (!company) {
@@ -70,20 +73,28 @@ export class CompanyService {
       );
     }
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { companyId: company.id },
+    const membership = await this.prisma.$transaction(async (tx) => {
+      return tx.companyMembership.create({
+        data: {
+          userId,
+          companyId: company.id,
+          role: 'MEMBER',
+          status: 'PENDING',
+        },
+      });
     });
 
-    return company;
+    return {
+      id: membership.id,
+      status: membership.status,
+      companyName: company.name,
+    };
   }
 
   /**
    * Returns minimal public info for the anonymous report form.
-   * @param slug - Magic link slug included in the anonymous report URL.
-   * @returns The company's display name.
    */
-  async findByMagicLink(slug: string): Promise<{ name: string }> {
+  async findByMagicLink(slug: string): Promise<CompanyPublicResponse> {
     const company = await this.prisma.company.findUnique({
       where: { magicLinkSlug: slug },
       select: { name: true },
@@ -102,15 +113,8 @@ export class CompanyService {
 
   /**
    * Returns the company the authenticated user belongs to.
-   * @param companyId - ID of the company from the user's JWT payload.
-   * @returns Company details including the magic link slug and creation date.
    */
-  async findUserCompany(companyId: string): Promise<{
-    id: string;
-    name: string;
-    magicLinkSlug: string;
-    createdAt: Date;
-  }> {
+  async findUserCompany(companyId: string): Promise<CompanyMeResponse> {
     const company = await this.prisma.company.findUnique({
       where: { id: companyId },
       select: { id: true, name: true, magicLinkSlug: true, createdAt: true },
@@ -129,12 +133,8 @@ export class CompanyService {
 
   /**
    * Rotates the magic link slug for security purposes.
-   * @param companyId - ID of the company whose link will be rotated.
-   * @returns The updated company ID and the new magic link slug.
    */
-  async rotateMagicLink(
-    companyId: string,
-  ): Promise<{ id: string; magicLinkSlug: string }> {
+  async rotateMagicLink(companyId: string): Promise<MagicLinkResponse> {
     const company = await this.prisma.company.update({
       where: { id: companyId },
       data: { magicLinkSlug: randomUUID() },
@@ -145,20 +145,80 @@ export class CompanyService {
   }
 
   /**
-   * Validates that the user does not already belong to a company.
-   * @param userId - ID of the user to check.
-   * @returns Void, or throws if the user is already assigned to a company.
+   * Lists membership requests for a company, optionally filtered by status.
    */
-  private async ensureUserHasNoCompany(userId: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { companyId: true },
+  async listMembers(
+    companyId: string,
+    status?: MembershipStatus,
+  ): Promise<MembershipResponse[]> {
+    const where: any = { companyId };
+    if (status) {
+      where.status = status;
+    }
+
+    return this.prisma.companyMembership.findMany({
+      where,
+      orderBy: { requestedAt: 'desc' },
+    });
+  }
+
+  /**
+   * Reviews (approves/rejects) a pending membership request.
+   * Only callable by company ADMINs.
+   */
+  async reviewMembership(
+    membershipId: string,
+    companyId: string,
+    reviewerId: string,
+    newStatus: MembershipStatus,
+  ): Promise<MembershipResponse> {
+    const membership = await this.prisma.companyMembership.findFirst({
+      where: { id: membershipId, companyId },
     });
 
-    if (user?.companyId) {
+    if (!membership) {
+      throw new AppException(
+        ExceptionCodes.MEMBERSHIP_NOT_FOUND,
+        'Membership request not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (membership.status !== 'PENDING') {
+      throw new AppException(
+        ExceptionCodes.MEMBERSHIP_ALREADY_REVIEWED,
+        'This membership request has already been reviewed',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    return this.prisma.companyMembership.update({
+      where: { id: membershipId },
+      data: {
+        status: newStatus,
+        reviewedAt: new Date(),
+        reviewedBy: reviewerId,
+      },
+    });
+  }
+
+  /**
+   * Validates that the user does not already have a membership (any status).
+   */
+  private async ensureUserHasNoMembership(userId: string): Promise<void> {
+    const existing = await this.prisma.companyMembership.findUnique({
+      where: { userId },
+      select: { id: true, status: true },
+    });
+
+    if (existing) {
+      const message =
+        existing.status === 'PENDING'
+          ? 'You already have a pending membership request'
+          : 'You already belong to a company';
       throw new AppException(
         ExceptionCodes.COMPANY_ALREADY_ASSIGNED,
-        'You already belong to a company',
+        message,
         HttpStatus.CONFLICT,
       );
     }

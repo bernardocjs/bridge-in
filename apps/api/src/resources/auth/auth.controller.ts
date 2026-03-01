@@ -1,8 +1,10 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, Public } from '../../common/decorators';
 import { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
 import { AuthService } from './auth.service';
+import { AuthTokenResponse, UserProfileResponse } from './interfaces';
 import { LoginDto, RegisterDto } from './dtos';
 
 @ApiTags('auth')
@@ -14,24 +16,26 @@ export class AuthController {
   /**
    * Registers a new user account.
    * @param dto - Registration payload (email, password, name).
-   * @returns Access token and the created user record.
+   * @returns Access token only.
    */
   @ApiOperation({ summary: 'Register a new user account' })
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Public()
   @Post('register')
-  register(@Body() dto: RegisterDto): ReturnType<AuthService['register']> {
+  register(@Body() dto: RegisterDto): Promise<AuthTokenResponse> {
     return this.authService.register(dto);
   }
 
   /**
    * Authenticates a user and issues a JWT.
    * @param dto - Login credentials (email, password).
-   * @returns Access token and the authenticated user with company info.
+   * @returns Access token only. Use GET /auth/me for user data.
    */
   @ApiOperation({ summary: 'Authenticate user and obtain JWT' })
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Public()
   @Post('login')
-  login(@Body() dto: LoginDto): ReturnType<AuthService['login']> {
+  login(@Body() dto: LoginDto): Promise<AuthTokenResponse> {
     return this.authService.login(dto);
   }
 
@@ -42,7 +46,7 @@ export class AuthController {
    */
   @ApiOperation({ summary: 'Return authenticated user profile' })
   @Get('me')
-  me(@CurrentUser() user: JwtPayload): ReturnType<AuthService['me']> {
+  me(@CurrentUser() user: JwtPayload): Promise<UserProfileResponse> {
     return this.authService.me(user.userId);
   }
 }

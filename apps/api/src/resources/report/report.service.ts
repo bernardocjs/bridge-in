@@ -1,43 +1,59 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { Prisma, Report, ReportPriority, ReportStatus } from '@prisma/client';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Prisma } from '@prisma/client';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
+import { paginate, buildPaginationMeta } from '../../common/helpers/pagination';
 import { PrismaService } from '../../providers/database/prisma.service';
 import {
   IMailer,
   MAILER_SERVICE,
 } from '../../providers/mailer/mailer.interface';
 import { CreateReportDto, QueryReportDto, UpdateReportDto } from './dtos';
-
-const DEFAULT_PAGE_SIZE = 10;
-const MAX_PAGE_SIZE = 50;
+import {
+  DashboardStatsResponse,
+  ReportDetailResponse,
+  ReportListResponse,
+  ReportSummaryResponse,
+} from './interfaces';
 
 @Injectable()
 export class ReportService {
+  private readonly logger = new Logger(ReportService.name);
+  private readonly defaultPageSize: number;
+  private readonly maxPageSize: number;
+
   constructor(
     private readonly prisma: PrismaService,
     @Inject(MAILER_SERVICE) private readonly mailer: IMailer,
-  ) {}
+    private readonly config: ConfigService,
+  ) {
+    this.defaultPageSize = this.config.get<number>(
+      'app.pagination.defaultSize',
+      10,
+    );
+    this.maxPageSize = this.config.get<number>('app.pagination.maxSize', 50);
+  }
 
   /**
    * Creates a report anonymously via the company's magic link slug.
-   * No authentication required.
-   * @param magicLinkSlug - Unique slug identifying the target company.
-   * @param dto - Report data submitted by the anonymous reporter.
-   * @returns Minimal report record (id, title, status, createdAt) and sends email notifications.
+   * No authentication required — tenant extension is NOT active on public routes,
+   * so companyId is resolved explicitly from the magic link.
    */
   async createAnonymous(
     magicLinkSlug: string,
     dto: CreateReportDto,
-  ): Promise<{
-    id: string;
-    title: string;
-    status: ReportStatus;
-    createdAt: Date;
-  }> {
+  ): Promise<ReportSummaryResponse> {
     const company = await this.prisma.company.findUnique({
       where: { magicLinkSlug },
-      select: { id: true, name: true, users: { select: { email: true } } },
+      select: {
+        id: true,
+        name: true,
+        memberships: {
+          where: { status: 'APPROVED' },
+          select: { user: { select: { email: true } } },
+        },
+      },
     });
 
     if (!company) {
@@ -63,45 +79,39 @@ export class ReportService {
       },
     });
 
-    company.users.forEach((user) => {
-      void this.mailer.send({
-        to: user.email,
+    // Send notifications to all approved members — log failures without blocking
+    const emailPromises = company.memberships.map((m) =>
+      this.mailer.send({
+        to: m.user.email,
         subject: `New anonymous report: ${report.title}`,
         body: `A new anonymous report has been submitted to ${company.name}. Please review it in your dashboard.`,
-      });
-    });
+      }),
+    );
+
+    const results = await Promise.allSettled(emailPromises);
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length > 0) {
+      this.logger.warn(
+        `Failed to send ${failures.length}/${results.length} notification emails for report ${report.id}`,
+      );
+    }
 
     return report;
   }
 
   /**
-   * Lists all reports for a company with optional filtering and pagination.
-   * Tenancy is enforced via the companyId from the JWT.
-   * @param companyId - ID of the company (from JWT) used to scope the query.
-   * @param query - Optional filters (status, priority) and pagination params (page, limit).
-   * @returns Paginated list of reports with metadata (total, page, limit, totalPages).
+   * Lists all reports for the current tenant with optional filtering and pagination.
+   * The tenant extension automatically injects companyId from AsyncLocalStorage.
    */
   async findAllByCompany(
     companyId: string,
     query: QueryReportDto,
-  ): Promise<{
-    data: Array<{
-      id: string;
-      title: string;
-      status: ReportStatus;
-      priority: ReportPriority;
-      reporterContact: string | null;
-      createdAt: Date;
-      updatedAt: Date;
-    }>;
-    meta: { total: number; page: number; limit: number; totalPages: number };
-  }> {
-    const page = Math.max(1, parseInt(query.page || '1', 10));
-    const limit = Math.min(
-      MAX_PAGE_SIZE,
-      Math.max(1, parseInt(query.limit || String(DEFAULT_PAGE_SIZE), 10)),
-    );
-    const skip = (page - 1) * limit;
+  ): Promise<ReportListResponse> {
+    const { skip, take, page, limit } = paginate({
+      page: query.page,
+      limit: query.limit,
+      maxLimit: this.maxPageSize,
+    });
 
     const where: Prisma.ReportWhereInput = { companyId };
 
@@ -117,7 +127,7 @@ export class ReportService {
       this.prisma.report.findMany({
         where,
         skip,
-        take: limit,
+        take,
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
@@ -134,24 +144,16 @@ export class ReportService {
 
     return {
       data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta: buildPaginationMeta(total, page, limit),
     };
   }
 
   /**
-   * Returns a single report by ID, enforcing company tenancy.
-   * Returns 404 even if the report exists in another company (no information leakage).
-   * @param id - UUID of the report to retrieve.
-   * @param companyId - ID of the company (from JWT) used to scope the query.
-   * @returns The full report record.
+   * Returns a single report by ID.
+   * The tenant extension ensures companyId is enforced automatically.
    */
-  async findOne(id: string, companyId: string): Promise<Report> {
-    const report = await this.prisma.report.findFirst({
+  async findOne(id: string, companyId: string): Promise<ReportDetailResponse> {
+    const report = await this.prisma.report.findUnique({
       where: { id, companyId },
     });
 
@@ -168,21 +170,27 @@ export class ReportService {
 
   /**
    * Updates a report's status and/or priority.
-   * Tenancy is enforced via companyId.
-   * @param id - UUID of the report to update.
-   * @param companyId - ID of the company (from JWT) used for tenancy validation.
-   * @param dto - Fields to update (status, priority).
-   * @returns The full updated report record.
    */
   async update(
     id: string,
     companyId: string,
     dto: UpdateReportDto,
-  ): Promise<Report> {
-    await this.findOne(id, companyId);
+  ): Promise<ReportDetailResponse> {
+    const existing = await this.prisma.report.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
 
-    return this.prisma.report.update({
-      where: { id },
+    if (!existing) {
+      throw new AppException(
+        ExceptionCodes.REPORT_NOT_FOUND,
+        'Report not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return await this.prisma.report.update({
+      where: { id, companyId },
       data: {
         ...(dto.status && { status: dto.status }),
         ...(dto.priority && { priority: dto.priority }),
@@ -192,14 +200,9 @@ export class ReportService {
 
   /**
    * Returns aggregated stats for the company dashboard.
-   * @param companyId - ID of the company (from JWT) to aggregate stats for.
-   * @returns Total report count, counts grouped by status, and counts grouped by priority.
+   * The tenant extension injects companyId into groupBy/count.
    */
-  async getDashboardStats(companyId: string): Promise<{
-    total: number;
-    byStatus: Record<string, number>;
-    byPriority: Record<string, number>;
-  }> {
+  async getDashboardStats(companyId: string): Promise<DashboardStatsResponse> {
     const [statusCounts, priorityCounts, total] =
       await this.prisma.$transaction([
         this.prisma.report.groupBy({

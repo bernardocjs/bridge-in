@@ -15,11 +15,13 @@ export class CreateReportDto {
 
   @ApiProperty({
     example: 'On 02/10, manager X acted inappropriately by...',
-    description: 'Detailed description of the incident (minimum 10 characters)',
+    description: 'Detailed description of the incident (10-50000 characters)',
     minLength: 10,
+    maxLength: 50000,
   })
   @IsString()
   @MinLength(10)
+  @MaxLength(50000)
   content: string;
 
   @ApiProperty({
@@ -29,5 +31,6 @@ export class CreateReportDto {
   })
   @IsString()
   @IsOptional()
+  @MaxLength(255)
   reporterContact?: string;
 }

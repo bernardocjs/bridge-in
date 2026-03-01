@@ -1,22 +1,30 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
 import { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
 import { PrismaService } from '../../providers/database/prisma.service';
+import { AuthTokenResponse, UserProfileResponse } from './interfaces';
 import { LoginDto, RegisterDto } from './dtos';
-
-const BCRYPT_SALT_ROUNDS = 12;
 
 @Injectable()
 export class AuthService {
+  private readonly bcryptSaltRounds: number;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
-  ) {}
+    private readonly config: ConfigService,
+  ) {
+    this.bcryptSaltRounds = this.config.get<number>(
+      'app.bcrypt.saltRounds',
+      12,
+    );
+  }
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto): Promise<AuthTokenResponse> {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -29,7 +37,10 @@ export class AuthService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(
+      dto.password,
+      this.bcryptSaltRounds,
+    );
 
     const user = await this.prisma.user.create({
       data: {
@@ -37,26 +48,27 @@ export class AuthService {
         password: hashedPassword,
         name: dto.name,
       },
-      select: { id: true, email: true, name: true, companyId: true },
+      select: { id: true, email: true },
     });
 
     const token = this.generateToken({
       userId: user.id,
       email: user.email,
-      companyId: user.companyId,
+      companyId: null,
+      role: null,
     });
 
-    return {
-      accessToken: token,
-      user,
-    };
+    return { accessToken: token };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<AuthTokenResponse> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
       include: {
-        company: { select: { id: true, name: true, magicLinkSlug: true } },
+        membership: {
+          where: { status: 'APPROVED' },
+          select: { companyId: true, role: true },
+        },
       },
     });
 
@@ -78,32 +90,33 @@ export class AuthService {
       );
     }
 
+    const membership = user.membership;
+
     const token = this.generateToken({
       userId: user.id,
       email: user.email,
-      companyId: user.companyId,
+      companyId: membership?.companyId ?? null,
+      role: membership?.role ?? null,
     });
 
-    return {
-      accessToken: token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        company: user.company,
-      },
-    };
+    return { accessToken: token };
   }
 
-  async me(userId: string) {
+  async me(userId: string): Promise<UserProfileResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         email: true,
         name: true,
-        companyId: true,
-        company: { select: { id: true, name: true, magicLinkSlug: true } },
+        membership: {
+          where: { status: 'APPROVED' },
+          select: {
+            companyId: true,
+            role: true,
+            company: { select: { name: true, magicLinkSlug: true } },
+          },
+        },
       },
     });
 
@@ -115,9 +128,14 @@ export class AuthService {
       );
     }
 
+    const membership = user.membership;
+
     return {
-      ...user,
-      hasCompany: !!user.companyId,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      companyId: membership?.companyId ?? null,
+      company: membership?.company ?? null,
     };
   }
 
