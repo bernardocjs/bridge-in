@@ -46,7 +46,7 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
-    it('deve criar o usuário e retornar um token quando o email não existe', async () => {
+    it('should create user and return a token when email does not exist', async () => {
       prismaMock.user.findUnique.mockResolvedValueOnce(null);
       prismaMock.user.create.mockResolvedValueOnce({
         id: 'user-1',
@@ -66,7 +66,7 @@ describe('AuthService', () => {
       expect(result).toEqual({ accessToken: 'jwt-token' });
     });
 
-    it('deve lançar AppException quando o email já está em uso', async () => {
+    it('should throw AppException when email is already in use', async () => {
       prismaMock.user.findUnique.mockResolvedValueOnce(makeUser());
 
       await expect(
@@ -81,7 +81,7 @@ describe('AuthService', () => {
       expect(call[0]).toEqual({ where: { email: 'test@example.com' } });
     });
 
-    it('deve lançar AppException com código AUTH_EMAIL_TAKEN', async () => {
+    it('should throw AppException with AUTH_EMAIL_TAKEN code', async () => {
       prismaMock.user.findUnique.mockResolvedValueOnce(makeUser());
 
       try {
@@ -90,7 +90,7 @@ describe('AuthService', () => {
           password: '123',
           name: 'X',
         });
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(ExceptionCodes.AUTH_EMAIL_TAKEN);
@@ -98,7 +98,7 @@ describe('AuthService', () => {
       }
     });
 
-    it('deve fazer hash da senha antes de salvar', async () => {
+    it('should hash password before saving', async () => {
       prismaMock.user.findUnique.mockResolvedValueOnce(null);
       prismaMock.user.create.mockResolvedValueOnce({
         id: 'u1',
@@ -119,7 +119,7 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('deve retornar um token para credenciais válidas', async () => {
+    it('should return a token for valid credentials', async () => {
       const hashed = await bcrypt.hash('secret', 10);
       prismaMock.user.findUnique.mockResolvedValueOnce(
         makeUser({ password: hashed, membership: null }),
@@ -134,12 +134,12 @@ describe('AuthService', () => {
       expect(jwtMock.sign).toHaveBeenCalledOnce();
     });
 
-    it('deve lançar AppException quando o usuário não existe', async () => {
+    it('should throw AppException when user does not exist', async () => {
       prismaMock.user.findUnique.mockResolvedValueOnce(null);
 
       try {
         await service.login({ email: 'none@example.com', password: 'x' });
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(
@@ -149,7 +149,7 @@ describe('AuthService', () => {
       }
     });
 
-    it('deve lançar AppException quando a senha está incorreta', async () => {
+    it('should throw AppException when password is incorrect', async () => {
       const hashed = await bcrypt.hash('correct', 10);
       prismaMock.user.findUnique.mockResolvedValueOnce(
         makeUser({ password: hashed, membership: null }),
@@ -157,7 +157,7 @@ describe('AuthService', () => {
 
       try {
         await service.login({ email: 'test@example.com', password: 'wrong' });
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(
@@ -166,7 +166,7 @@ describe('AuthService', () => {
       }
     });
 
-    it('deve incluir companyId e role no token quando o usuário tem membership aprovado', async () => {
+    it('should include companyId and role in token when user has approved membership', async () => {
       const hashed = await bcrypt.hash('pass', 10);
       const membership = {
         companyId: 'company-1',
@@ -186,7 +186,7 @@ describe('AuthService', () => {
   });
 
   describe('me', () => {
-    it('deve retornar o perfil do usuário autenticado', async () => {
+    it('should return authenticated user profile', async () => {
       const user = {
         id: 'user-1',
         email: 'test@example.com',
@@ -206,12 +206,12 @@ describe('AuthService', () => {
       expect(result.companyId).toBe('company-1');
     });
 
-    it('deve lançar AppException quando usuário não é encontrado', async () => {
+    it('should throw AppException when user is not found', async () => {
       prismaMock.user.findUnique.mockResolvedValueOnce(null);
 
       try {
         await service.me('missing-id');
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(ExceptionCodes.AUTH_UNAUTHORIZED);
@@ -219,7 +219,7 @@ describe('AuthService', () => {
       }
     });
 
-    it('deve retornar companyId nulo quando usuário não tem membership', async () => {
+    it('should return null companyId when user has no membership', async () => {
       prismaMock.user.findUnique.mockResolvedValueOnce({
         id: 'user-1',
         email: 'test@example.com',

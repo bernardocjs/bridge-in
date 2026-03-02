@@ -65,7 +65,7 @@ describe('ReportService', () => {
   });
 
   describe('createAnonymous', () => {
-    it('deve criar um relatório anônimo com sucesso', async () => {
+    it('should create an anonymous report successfully', async () => {
       prismaMock.company.findUnique.mockResolvedValueOnce({
         id: 'company-1',
         name: 'Test Company',
@@ -87,7 +87,7 @@ describe('ReportService', () => {
       expect(prismaMock.report.create).toHaveBeenCalledOnce();
     });
 
-    it('deve lançar AppException quando o magic link é inválido', async () => {
+    it('should throw AppException when magic link is invalid', async () => {
       prismaMock.company.findUnique.mockResolvedValueOnce(null);
 
       try {
@@ -95,7 +95,7 @@ describe('ReportService', () => {
           title: 'T',
           content: 'C',
         });
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(
@@ -105,7 +105,7 @@ describe('ReportService', () => {
       }
     });
 
-    it('deve salvar o contato do denunciante quando fornecido', async () => {
+    it('should save reporter contact when provided', async () => {
       prismaMock.company.findUnique.mockResolvedValueOnce({
         id: 'company-1',
         name: 'Test Company',
@@ -123,7 +123,7 @@ describe('ReportService', () => {
       expect(createArgs.reporterContact).toBe('anon@mail.com');
     });
 
-    it('deve notificar membros aprovados quando um report é criado', async () => {
+    it('should notify approved members when a report is created', async () => {
       const members = [
         { user: { email: 'admin@corp.com', name: 'Admin' } },
         { user: { email: 'member@corp.com', name: 'Member' } },
@@ -156,7 +156,7 @@ describe('ReportService', () => {
   });
 
   describe('findAllByCompany', () => {
-    it('deve retornar relatórios paginados', async () => {
+    it('should return paginated reports', async () => {
       const reports = [makeReport(), makeReport({ id: 'report-2' })];
       prismaMock.$transaction.mockResolvedValueOnce([reports, 2]);
 
@@ -170,7 +170,7 @@ describe('ReportService', () => {
       expect(result.meta.page).toBe(1);
     });
 
-    it('deve aplicar filtro de status quando fornecido', async () => {
+    it('should apply status filter when provided', async () => {
       prismaMock.$transaction.mockResolvedValueOnce([[], 0]);
 
       await service.findAllByCompany('company-1', {
@@ -183,7 +183,7 @@ describe('ReportService', () => {
       expect(Array.isArray(txCall)).toBe(true);
     });
 
-    it('deve usar valores padrão de paginação', async () => {
+    it('should use default pagination values', async () => {
       prismaMock.$transaction.mockResolvedValueOnce([[], 0]);
 
       const result = await service.findAllByCompany('company-1', {});
@@ -194,7 +194,7 @@ describe('ReportService', () => {
   });
 
   describe('findOne', () => {
-    it('deve retornar um relatório pelo id', async () => {
+    it('should return a report by id', async () => {
       prismaMock.report.findUnique.mockResolvedValueOnce(makeReport());
 
       const result = await service.findOne('report-1', 'company-1');
@@ -205,12 +205,12 @@ describe('ReportService', () => {
       });
     });
 
-    it('deve lançar AppException quando o relatório não é encontrado', async () => {
+    it('should throw AppException when report is not found', async () => {
       prismaMock.report.findUnique.mockResolvedValueOnce(null);
 
       try {
         await service.findOne('missing', 'company-1');
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(ExceptionCodes.REPORT_NOT_FOUND);
@@ -220,7 +220,7 @@ describe('ReportService', () => {
   });
 
   describe('update', () => {
-    it('deve atualizar o status do relatório', async () => {
+    it('should update report status', async () => {
       prismaMock.report.findFirst.mockResolvedValueOnce(makeReport());
       const updated = makeReport({ status: ReportStatus.IN_PROGRESS });
       prismaMock.report.update.mockResolvedValueOnce(updated);
@@ -233,7 +233,7 @@ describe('ReportService', () => {
       expect(prismaMock.report.update).toHaveBeenCalledOnce();
     });
 
-    it('deve atualizar a prioridade do relatório', async () => {
+    it('should update report priority', async () => {
       prismaMock.report.findFirst.mockResolvedValueOnce(makeReport());
       const updated = makeReport({ priority: ReportPriority.HIGH });
       prismaMock.report.update.mockResolvedValueOnce(updated);
@@ -245,14 +245,14 @@ describe('ReportService', () => {
       expect(result.priority).toBe(ReportPriority.HIGH);
     });
 
-    it('deve lançar AppException quando o relatório não existe', async () => {
+    it('should throw AppException when report does not exist', async () => {
       prismaMock.report.findFirst.mockResolvedValueOnce(null);
 
       try {
         await service.update('missing', 'company-1', {
           status: ReportStatus.RESOLVED,
         });
-        expect.fail('deveria ter lançado exception');
+        expect.fail('should have thrown');
       } catch (e: unknown) {
         expect(e).toBeInstanceOf(AppException);
         expect((e as AppException).code).toBe(ExceptionCodes.REPORT_NOT_FOUND);
@@ -262,7 +262,7 @@ describe('ReportService', () => {
   });
 
   describe('getDashboardStats', () => {
-    it('deve retornar estatísticas agregadas do dashboard', async () => {
+    it('should return aggregated dashboard statistics', async () => {
       const statusCounts = [
         { status: ReportStatus.OPEN, _count: { status: 3 } },
         { status: ReportStatus.RESOLVED, _count: { status: 1 } },
@@ -285,7 +285,7 @@ describe('ReportService', () => {
       expect(result.byPriority[ReportPriority.HIGH]).toBe(2);
     });
 
-    it('deve retornar totais zerados quando não há relatórios', async () => {
+    it('should return zero totals when there are no reports', async () => {
       prismaMock.$transaction.mockResolvedValueOnce([[], [], 0]);
 
       const result = await service.getDashboardStats('company-1');
