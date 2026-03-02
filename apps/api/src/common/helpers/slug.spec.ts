@@ -21,16 +21,6 @@ describe('generateSlug', () => {
     expect(slug).toMatch(/[a-z0-9]{6}$/);
   });
 
-  it('should fallback to "company" for empty name', () => {
-    const slug = generateSlug('');
-    expect(slug).toMatch(/^company-[a-z0-9]{6}$/);
-  });
-
-  it('should fallback to "company" for name with only special characters', () => {
-    const slug = generateSlug('!@#$%');
-    expect(slug).toMatch(/^company-[a-z0-9]{6}$/);
-  });
-
   it('should generate unique slugs on each call', () => {
     const slugs = new Set(
       Array.from({ length: 20 }, () => generateSlug('Test')),

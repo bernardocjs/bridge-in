@@ -16,7 +16,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  const nodeEnv = config.get<string>('NODE_ENV', 'development');
+  const nodeEnv = config.getOrThrow<string>('app.nodeEnv');
   if (nodeEnv !== 'production') {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Bridge-In API')
@@ -37,11 +37,11 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: config.getOrThrow<string>('CORS_ORIGIN'),
+    origin: config.getOrThrow<string>('app.corsOrigin'),
     credentials: true,
   });
 
-  const port = config.get<number>('PORT', 3000);
+  const port = config.getOrThrow<number>('app.port');
   await app.listen(port);
 }
 bootstrap();

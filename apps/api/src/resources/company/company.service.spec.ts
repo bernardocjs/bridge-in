@@ -1,4 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { MemberRole, MembershipStatus } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppException } from '../../common/exceptions/app.exception';
@@ -46,12 +47,23 @@ const prismaMock = {
   $transaction: vi.fn(),
 };
 
+const configMock = {
+  getOrThrow: vi.fn((key: string): any => {
+    if (key === 'app.slug.maxRetries') return 3;
+    if (key === 'app.prisma.uniqueViolation') return 'P2002';
+    throw new Error(`Config key not mocked: ${key}`);
+  }),
+};
+
 describe('CompanyService', () => {
   let service: CompanyService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new CompanyService(prismaMock as unknown as PrismaService);
+    service = new CompanyService(
+      prismaMock as unknown as PrismaService,
+      configMock as unknown as ConfigService,
+    );
   });
 
   describe('create', () => {

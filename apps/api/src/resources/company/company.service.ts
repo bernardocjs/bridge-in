@@ -1,4 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { MemberRole, MembershipStatus } from '@prisma/client';
 import { AppException } from '../../common/exceptions/app.exception';
 import { ExceptionCodes } from '../../common/exceptions/exception-codes';
@@ -14,12 +15,20 @@ import {
   MembershipResponse,
 } from './interfaces';
 
-const MAX_SLUG_RETRIES = 3;
-const PRISMA_UNIQUE_VIOLATION = 'P2002';
-
 @Injectable()
 export class CompanyService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly maxSlugRetries: number;
+  private readonly prismaUniqueViolation: string;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {
+    this.maxSlugRetries = this.config.getOrThrow<number>('app.slug.maxRetries');
+    this.prismaUniqueViolation = this.config.getOrThrow<string>(
+      'app.prisma.uniqueViolation',
+    );
+  }
 
   /**
    * Creates a new company and assigns the requesting user as ADMIN (auto-approved).
@@ -34,7 +43,7 @@ export class CompanyService {
   ): Promise<CompanyResponse> {
     await this.ensureUserHasNoMembership(userId);
 
-    for (let attempt = 0; attempt < MAX_SLUG_RETRIES; attempt++) {
+    for (let attempt = 0; attempt < this.maxSlugRetries; attempt++) {
       try {
         return await this.prisma.$transaction(async (tx) => {
           const company = await tx.company.create({
@@ -58,10 +67,10 @@ export class CompanyService {
         });
       } catch (error: any) {
         const isSlugCollision =
-          error?.code === PRISMA_UNIQUE_VIOLATION &&
+          error?.code === this.prismaUniqueViolation &&
           error?.meta?.target?.includes('magicLinkSlug');
 
-        if (!isSlugCollision || attempt === MAX_SLUG_RETRIES - 1) {
+        if (!isSlugCollision || attempt === this.maxSlugRetries - 1) {
           throw error;
         }
       }
@@ -186,7 +195,7 @@ export class CompanyService {
       );
     }
 
-    for (let attempt = 0; attempt < MAX_SLUG_RETRIES; attempt++) {
+    for (let attempt = 0; attempt < this.maxSlugRetries; attempt++) {
       try {
         const company = await this.prisma.company.update({
           where: { id: companyId },
@@ -196,10 +205,10 @@ export class CompanyService {
         return company;
       } catch (error: any) {
         const isSlugCollision =
-          error?.code === PRISMA_UNIQUE_VIOLATION &&
+          error?.code === this.prismaUniqueViolation &&
           error?.meta?.target?.includes('magicLinkSlug');
 
-        if (!isSlugCollision || attempt === MAX_SLUG_RETRIES - 1) {
+        if (!isSlugCollision || attempt === this.maxSlugRetries - 1) {
           throw error;
         }
       }

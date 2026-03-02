@@ -41,10 +41,10 @@ const prismaMock = {
 };
 
 const configMock = {
-  get: vi.fn((key: string, fallback?: number): number => {
-    if (key === 'app.pagination.defaultSize') return fallback ?? 10;
-    if (key === 'app.pagination.maxSize') return fallback ?? 50;
-    return fallback ?? 0;
+  getOrThrow: vi.fn((key: string): number => {
+    if (key === 'app.pagination.defaultSize') return 10;
+    if (key === 'app.pagination.maxSize') return 50;
+    throw new Error(`Config key not mocked: ${key}`);
   }),
 };
 

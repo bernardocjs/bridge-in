@@ -31,7 +31,7 @@ export class MailService {
   ): void {
     if (!recipients.length) return;
 
-    const dashboardUrl = `${this.baseUrl}/dashboard/reports`;
+    const dashboardUrl = `${this.baseUrl}/`;
 
     const html = this.buildNewReportHtml(
       companyName,
@@ -43,7 +43,7 @@ export class MailService {
       .send({
         from: this.from,
         to: recipients.map((r) => r.email),
-        subject: `[Bridge-In] Novo relatório recebido — ${companyName}`,
+        subject: `[Bridge-In] New report sent — ${companyName}`,
         html,
       })
       .then(() => {
@@ -66,11 +66,11 @@ export class MailService {
   ): string {
     return `
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Novo relatório recebido</title>
+  <title>New report received</title>
 </head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
@@ -86,15 +86,15 @@ export class MailService {
           <!-- Body -->
           <tr>
             <td style="padding:32px;">
-              <h1 style="margin:0 0 8px;font-size:20px;color:#18181b;">Novo relatório recebido</h1>
+              <h1 style="margin:0 0 8px;font-size:20px;color:#18181b;">New report received</h1>
               <p style="margin:0 0 24px;font-size:15px;color:#52525b;">
-                A empresa <strong>${companyName}</strong> recebeu um novo relatório anônimo.
+                The company <strong>${companyName}</strong> has received a new anonymous report.
               </p>
 
               <table width="100%" cellpadding="16" cellspacing="0" style="background:#f4f4f5;border-radius:6px;margin-bottom:24px;">
                 <tr>
                   <td>
-                    <p style="margin:0 0 4px;font-size:12px;color:#71717a;text-transform:uppercase;letter-spacing:.05em;">Título do relatório</p>
+                    <p style="margin:0 0 4px;font-size:12px;color:#71717a;text-transform:uppercase;letter-spacing:.05em;">Report title</p>
                     <p style="margin:0;font-size:16px;font-weight:600;color:#18181b;">${reportTitle}</p>
                   </td>
                 </tr>
@@ -102,7 +102,7 @@ export class MailService {
 
               <a href="${dashboardUrl}"
                  style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:14px;font-weight:600;">
-                Ver no dashboard
+                View in dashboard
               </a>
             </td>
           </tr>
@@ -110,7 +110,7 @@ export class MailService {
           <tr>
             <td style="padding:20px 32px;border-top:1px solid #e4e4e7;">
               <p style="margin:0;font-size:12px;color:#a1a1aa;">
-                Você recebe este email por ser membro aprovado da empresa ${companyName} no Bridge-In.
+                You are receiving this email because you are an approved member of ${companyName} on Bridge-In.
               </p>
             </td>
           </tr>

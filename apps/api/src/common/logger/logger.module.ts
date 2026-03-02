@@ -8,8 +8,8 @@ import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
     PinoLoggerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const isProduction = config.get('NODE_ENV') === 'production';
-        const logLevel = config.get('LOG_LEVEL', 'info');
+        const isProduction = config.getOrThrow('app.nodeEnv') === 'production';
+        const logLevel = config.getOrThrow('app.logging.level');
 
         return {
           pinoHttp: {

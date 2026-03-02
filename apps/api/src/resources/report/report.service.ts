@@ -26,11 +26,10 @@ export class ReportService {
     private readonly config: ConfigService,
     private readonly mail: MailService,
   ) {
-    this.defaultPageSize = this.config.get<number>(
+    this.defaultPageSize = this.config.getOrThrow<number>(
       'app.pagination.defaultSize',
-      10,
     );
-    this.maxPageSize = this.config.get<number>('app.pagination.maxSize', 50);
+    this.maxPageSize = this.config.getOrThrow<number>('app.pagination.maxSize');
   }
 
   /**

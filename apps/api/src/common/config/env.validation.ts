@@ -23,4 +23,6 @@ export const envValidationSchema = Joi.object({
 
   RESEND_API_KEY: Joi.string().required(),
   MAIL_FROM: Joi.string().default('Bridge-In <noreply@bridgein.app>'),
+
+  MAX_SLUG_RETRIES: Joi.number().integer().min(1).max(10).default(3),
 });

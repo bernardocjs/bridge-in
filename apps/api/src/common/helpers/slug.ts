@@ -29,7 +29,7 @@ function slugifyName(name: string): string {
     }
   }
 
-  return slug || 'company';
+  return slug;
 }
 
 export function generateSlug(name: string): string {
