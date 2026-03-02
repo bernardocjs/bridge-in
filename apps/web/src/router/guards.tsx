@@ -14,16 +14,6 @@ const Spinner = () => (
   </div>
 )
 
-/** Requires authentication — redirects to login if no token */
-export function AuthGuard() {
-  const isAuthenticated = useAuthStore(selectIsAuthenticated)
-  if (!isAuthenticated) return <Navigate to={Routes.LOGIN} replace />
-  return <Outlet />
-}
-
-/**
- * Blocks authenticated users — redirects to dashboard.
- */
 export function GuestGuard() {
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const { isLoading } = useMe()
@@ -33,21 +23,32 @@ export function GuestGuard() {
   return <Outlet />
 }
 
-/** Requires user to belong to a company — redirects to onboarding */
-export function CompanyGuard() {
-  const hasCompany = useAuthStore(selectHasCompany)
-  const user = useAuthStore(s => s.user)
-  const token = useAuthStore(s => s.token)
-  const { isLoading, isFetching } = useMe()
-
-  if (token && (isLoading || (isFetching && !user))) return <Spinner />
-  if (!hasCompany) return <Navigate to={Routes.ONBOARDING} replace />
-  return <Outlet />
+interface ProtectedRouteProps {
+  requireCompany?: boolean
+  requireAdmin?: boolean
 }
 
-/** Requires ADMIN role — redirects to dashboard otherwise */
-export function AdminGuard() {
+export function ProtectedRoute({
+  requireCompany = false,
+  requireAdmin = false,
+}: ProtectedRouteProps = {}) {
+  const token = useAuthStore(s => s.token)
+  const hasCompany = useAuthStore(selectHasCompany)
   const isAdmin = useAuthStore(selectIsAdmin)
-  if (!isAdmin) return <Navigate to={Routes.DASHBOARD} replace />
+  const user = useAuthStore(s => s.user)
+  const { isLoading, isFetching } = useMe()
+
+  if (!token) return <Navigate to={Routes.LOGIN} replace />
+
+  if (isLoading || (isFetching && !user)) return <Spinner />
+
+  if (requireCompany && !hasCompany) {
+    return <Navigate to={Routes.ONBOARDING} replace />
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to={Routes.DASHBOARD} replace />
+  }
+
   return <Outlet />
 }

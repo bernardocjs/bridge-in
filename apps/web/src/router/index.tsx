@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { Routes } from './routes'
-import { AuthGuard, GuestGuard, CompanyGuard, AdminGuard } from './guards'
+import { GuestGuard, ProtectedRoute } from './guards'
 
 import { AuthLayout } from '@/presentation/layouts/auth-layout'
 import { AppLayout } from '@/presentation/layouts/app-layout'
@@ -36,31 +36,36 @@ const router = createBrowserRouter([
   },
 
   {
-    element: <AuthGuard />,
+    element: <ProtectedRoute />,
     children: [
       {
         path: Routes.ONBOARDING,
         element: <AuthLayout />,
         children: [{ index: true, element: <OnboardingPage /> }],
       },
+    ],
+  },
 
+  {
+    element: <ProtectedRoute requireCompany />,
+    children: [
       {
-        element: <CompanyGuard />,
+        element: <AppLayout />,
         children: [
-          {
-            element: <AppLayout />,
-            children: [
-              { path: Routes.DASHBOARD, element: <DashboardPage /> },
-              { path: Routes.REPORTS, element: <ReportListPage /> },
-              { path: Routes.REPORT_DETAIL, element: <ReportDetailPage /> },
-
-              {
-                element: <AdminGuard />,
-                children: [{ path: Routes.MEMBERS, element: <MembersPage /> }],
-              },
-            ],
-          },
+          { path: Routes.DASHBOARD, element: <DashboardPage /> },
+          { path: Routes.REPORTS, element: <ReportListPage /> },
+          { path: Routes.REPORT_DETAIL, element: <ReportDetailPage /> },
         ],
+      },
+    ],
+  },
+
+  {
+    element: <ProtectedRoute requireCompany requireAdmin />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [{ path: Routes.MEMBERS, element: <MembersPage /> }],
       },
     ],
   },
