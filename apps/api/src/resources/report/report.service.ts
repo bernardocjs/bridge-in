@@ -75,23 +75,17 @@ export class ReportService {
       },
     });
 
-    this.prisma.companyMembership
-      .findMany({
-        where: { companyId: company.id, status: MembershipStatus.APPROVED },
-        select: { user: { select: { email: true, name: true } } },
-      })
-      .then((memberships) => {
-        const recipients = memberships.map((m) => ({
-          email: m.user.email,
-          name: m.user.name,
-        }));
-        this.mail.sendNewReportNotification(
-          company.name,
-          report.title,
-          recipients,
-        );
-      })
-      .catch(() => {});
+    const memberships = await this.prisma.companyMembership.findMany({
+      where: { companyId: company.id, status: MembershipStatus.APPROVED },
+      select: { user: { select: { email: true, name: true } } },
+    });
+
+    const recipients = memberships.map((m) => ({
+      email: m.user.email,
+      name: m.user.name,
+    }));
+
+    this.mail.sendNewReportNotification(company.name, report.title, recipients);
 
     return report;
   }
@@ -211,12 +205,6 @@ export class ReportService {
    *
    * @param companyId - The company identifier to scope the aggregation.
    * @returns Breakdown of reports by status and priority, plus total count.
-   */
-  /**
-   * Returns the count of reports per month for the last 12 months.
-   *
-   * @param companyId - The company identifier to scope the aggregation.
-   * @returns Array of { month, count } for the last 12 months.
    */
   async getMonthlyCount(companyId: string): Promise<MonthlyCountResponse> {
     const now = new Date();

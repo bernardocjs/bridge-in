@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { decodeJwtPayload } from '@/lib/decode-jwt'
 import { MemberRole } from '@/types'
 import type { UserProfile } from '@/types'
 
@@ -12,7 +11,6 @@ interface AuthState {
 interface AuthActions {
   setToken: (token: string) => void
   setUser: (user: UserProfile) => void
-  setRole: (role: MemberRole) => void
   logout: () => void
 }
 
@@ -25,8 +23,6 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       setToken: token => set({ token }),
       setUser: user => set({ user }),
-      setRole: role =>
-        set(state => (state.user ? { user: { ...state.user, role } } : {})),
       logout: () => set({ token: null, user: null }),
     }),
     {
@@ -39,14 +35,4 @@ export const useAuthStore = create<AuthStore>()(
 export const selectIsAuthenticated = (s: AuthStore) => !!s.token
 export const selectHasCompany = (s: AuthStore) => !!s.user?.companyId
 
-export const selectIsAdmin = (s: AuthStore) => {
-  if (s.user?.role === MemberRole.ADMIN) return true
-  if (s.token) {
-    try {
-      return decodeJwtPayload(s.token).role === MemberRole.ADMIN
-    } catch {
-      return false
-    }
-  }
-  return false
-}
+export const selectIsAdmin = (s: AuthStore) => s.user?.role === MemberRole.ADMIN

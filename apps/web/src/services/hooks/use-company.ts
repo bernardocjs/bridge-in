@@ -4,26 +4,12 @@ import { authKeys, companyKeys } from '@/lib/query-client'
 import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth.store'
 import { handleApiError } from '@/utils/error-handler'
-import { MemberRole, type MembershipStatus } from '@/types'
+import type { MembershipStatus } from '@/types'
 
 export function useCreateCompany() {
   return useMutation({
     mutationFn: companyApi.create,
-    onSuccess: data => {
-      const store = useAuthStore.getState()
-      const user = store.user
-
-      if (user) {
-        store.setUser({
-          ...user,
-          companyId: data.id,
-          role: MemberRole.ADMIN,
-          company: { name: data.name, magicLinkSlug: data.magicLinkSlug },
-        })
-      } else {
-        store.setRole(MemberRole.ADMIN)
-      }
-
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.me() })
     },
     onError: error =>

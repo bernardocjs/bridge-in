@@ -1,6 +1,20 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/auth.store'
+
+const handleAuthError = (error: unknown) => {
+  if (axios.isAxiosError(error) && error.response?.status === 401) {
+    useAuthStore.getState().logout()
+  }
+}
 
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: handleAuthError,
+  }),
+  mutationCache: new MutationCache({
+    onError: handleAuthError,
+  }),
   defaultOptions: {
     queries: {
       staleTime: 30 * 1000,

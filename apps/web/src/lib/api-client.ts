@@ -18,21 +18,3 @@ apiClient.interceptors.request.use(config => {
   }
   return config
 })
-
-apiClient.interceptors.response.use(
-  response => response,
-  error => {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      localStorage.removeItem('auth-storage')
-      const { pathname } = window.location
-      if (
-        !pathname.startsWith('/login') &&
-        !pathname.startsWith('/register') &&
-        !pathname.startsWith('/report/')
-      ) {
-        window.location.href = '/login'
-      }
-    }
-    return Promise.reject(error)
-  },
-)
